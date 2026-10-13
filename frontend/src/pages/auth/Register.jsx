@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./Auth.css";
+import { apiRequest } from "../../services/api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -90,19 +91,39 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleCreateAccount = (e) => {
-    e.preventDefault();
+  
+const handleCreateAccount = async (e) => {
+  e.preventDefault();
 
-    if (!validateForm()) {
-      return;
+  // Check the existing form validation
+  if (!validateForm()) {
+    return;
+  }
+
+  try {
+    // Send customer details to the backend
+    const data = await apiRequest("/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+      }),
+    });
+
+    // Show success popup only after the backend succeeds
+    if (data.success) {
+      setAccountCreated(true);
     }
+  } catch (error) {
+    // Display backend errors, such as an email already registered
+    alert(error.message);
+  }
+};
 
-    // FRONTEND ONLY FOR NOW
-    console.log("Customer account:", formData);
-
-    // Show success popup
-    setAccountCreated(true);
-  };
 
   const closePopup = () => {
     setAccountCreated(false);

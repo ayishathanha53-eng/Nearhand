@@ -1,0 +1,22 @@
+
+# Frontend
+frontend/node_modules/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+frontend/dist/
+
+# Backend
+backend/node_modules/
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/uploads/
+
+# General
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+*.log

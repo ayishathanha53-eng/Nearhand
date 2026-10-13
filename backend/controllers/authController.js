@@ -97,6 +97,64 @@ const login = async (req, res) => {
   }
 };
 
+
+const registerCustomer = async (req, res) => {
+  try {
+    const { fullName, email, password } = req.body;
+
+    // Check required fields
+    if (!fullName || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Full name, email and password are required",
+      });
+    }
+
+    // Check existing customer
+    const existingUser = await User.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "An account with this email already exists",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create customer
+    const user = await User.create({
+      fullName,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role: "customer",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Customer account created successfully",
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Customer registration error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error during customer registration",
+    });
+  }
+};
+
+
 module.exports = {
   login,
+  registerCustomer,
 };

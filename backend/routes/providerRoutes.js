@@ -3,9 +3,9 @@ const bcrypt = require("bcryptjs");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
 const Provider = require("../models/Provider");
-
+const Booking = require("../models/Booking");
+const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
 
@@ -312,6 +312,124 @@ router.post(
 
   }
 );
+
+/* ===============================
+   PROVIDER DASHBOARD
+================================ */
+
+router.get("/dashboard", authMiddleware, async (req, res) => {
+  try {
+    // Allow only logged-in providers
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Provider account required.",
+      });
+    }
+
+    // Find the logged-in provider
+    const provider = await Provider.findById(req.user.id)
+      .select("-password")
+      .lean();
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider account not found",
+      });
+    }
+
+    // Count this provider's bookings
+    const totalBookings = await Booking.countDocuments({
+      provider: provider._id,
+    });
+
+    const pendingBookings = await Booking.countDocuments({
+      provider: provider._id,
+      status: "Pending",
+    });
+
+    const completedBookings = await Booking.countDocuments({
+      provider: provider._id,
+      status: "Completed",
+    });
+
+    // Calculate earnings from completed bookings
+    const earningsResult = await Booking.aggregate([
+      {
+        $match: {
+          provider: provider._id,
+          status: "Completed",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$price" },
+        },
+      },
+    ]);
+
+    const totalEarnings = earningsResult[0]?.total || 0;
+
+    // Get the next five appointments
+    const upcomingBookings = await Booking.find({
+      provider: provider._id,
+      bookingDate: { $gte: new Date() },
+      status: { $nin: ["Cancelled", "Completed"] },
+    })
+      .populate("customer", "fullName email")
+      .sort({ bookingDate: 1 })
+      .limit(5)
+      .lean();
+
+    // Estimate profile completion using required profile fields
+    const profileFields = [
+      "fullName",
+      "email",
+      "phone",
+      "address",
+      "city",
+      "serviceCategory",
+      "serviceArea",
+      "about",
+      "profilePhoto",
+    ];
+
+    const completedFields = profileFields.filter(
+      (field) => Boolean(provider[field])
+    ).length;
+
+    const profileCompletion = Math.round(
+      (completedFields / profileFields.length) * 100
+    );
+
+    return res.status(200).json({
+      success: true,
+      provider: {
+        id: provider._id,
+        fullName: provider.fullName,
+        serviceCategory: provider.serviceCategory,
+        verificationStatus: provider.verificationStatus,
+      },
+      stats: {
+        totalBookings,
+        pendingBookings,
+        completedBookings,
+        totalEarnings,
+      },
+      profileCompletion,
+      upcomingBookings,
+    });
+  } catch (error) {
+    console.error("Provider dashboard error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load provider dashboard",
+    });
+  }
+});
 
 
 module.exports = router;

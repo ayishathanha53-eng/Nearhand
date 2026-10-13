@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./Auth.css";
-
+import { apiRequest } from "../../services/api";
 export default function ProviderRegister() {
   const navigate = useNavigate();
 
@@ -67,19 +67,105 @@ export default function ProviderRegister() {
   // Handle text inputs
   // -----------------------------
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    setFormData((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+  setFormData((prevData) => ({
+    ...prevData,
+    [name]: value,
+  }));
+};
 
-    setErrors((previous) => ({
-      ...previous,
-      [name]: "",
-    }));
-  };
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  // Validate the form first
+  if (!validateForm()) {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+    return;
+  }
+
+  try {
+    // Create FormData to send text fields and files
+    const data = new FormData();
+
+    // Personal information
+    data.append("fullName", formData.fullName.trim());
+    data.append("email", formData.email.trim().toLowerCase());
+    data.append("phone", formData.phone.trim());
+    data.append("password", formData.password);
+    data.append("gender", formData.gender);
+    data.append("dateOfBirth", formData.dateOfBirth);
+
+    // Address information
+    data.append("address", formData.address.trim());
+    data.append("city", formData.city.trim());
+    data.append("state", formData.state.trim());
+    data.append("pincode", formData.pincode.trim());
+
+    // Qualification information
+    data.append(
+      "highestQualification",
+      formData.qualification
+    );
+    data.append("institution", formData.institution);
+    data.append("graduationYear", formData.completionYear);
+
+    // Professional information
+    data.append("serviceCategory", formData.serviceCategory);
+    data.append("experience", formData.experience);
+    data.append("serviceArea", formData.serviceAreas.trim());
+    data.append("about", formData.description.trim());
+
+    // Additional form fields, if your model supports them
+    data.append("serviceType", formData.serviceType);
+    data.append("startingPrice", formData.startingPrice);
+    data.append("specialization", formData.specialization);
+
+    // Attach documents using the exact backend field names
+    if (files.identityProof) {
+      data.append("idProof", files.identityProof);
+    }
+
+    if (files.qualificationCertificate) {
+      data.append(
+        "qualificationCertificate",
+        files.qualificationCertificate
+      );
+    }
+
+    if (files.experienceCertificate) {
+      data.append(
+        "experienceCertificate",
+        files.experienceCertificate
+      );
+    }
+
+    // Send the data to the provider registration API
+    const result = await apiRequest(
+      "/api/providers/register",
+      {
+        method: "POST",
+        body: data,
+      }
+    );
+
+    // Show success only when the server confirms registration
+    if (result.success) {
+      setSubmitted(true);
+    } else {
+      alert(result.message || "Provider registration failed");
+    }
+  } catch (error) {
+    console.error("Provider registration error:", error);
+    alert(error.message || "Something went wrong during registration");
+  }
+};
+
 
   // -----------------------------
   // Handle file upload
@@ -235,24 +321,7 @@ export default function ProviderRegister() {
   // Submit
   // -----------------------------
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-
-      return;
-    }
-
-    // Frontend only for now
-    console.log("Provider details:", formData);
-    console.log("Uploaded documents:", files);
-
-    setSubmitted(true);
-  };
+  
 
   // -----------------------------
   // File upload component
@@ -634,15 +703,15 @@ export default function ProviderRegister() {
                     Select gender
                   </option>
 
-                  <option value="male">
+                  <option value="Male">
                     Male
                   </option>
 
-                  <option value="female">
+                  <option value="Female">
                     Female
                   </option>
 
-                  <option value="other">
+                  <option value="Other">
                     Other
                   </option>
 
