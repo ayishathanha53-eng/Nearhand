@@ -128,11 +128,32 @@ const providerSchema = new mongoose.Schema(
     rejectionReason: {
       type: String,
       default: ""
-    }
+    },
+
+
+verificationReviewedAt: {
+  type: Date,
+  default: null,
+},
+verificationReviewedBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  default: null,
+},
+rejectionReason: {
+  type: String,
+  default: "",
+},
+isAvailableForCustomers: {
+  type: Boolean,
+  default: false,
+},
   },
   {
     timestamps: true
-  }
+  },
+
+
 );
 
-module.exports = mongoose.model("Provider", providerSchema);
+module.exports =
+mongoose.models.Provider || mongoose.model("Provider", providerSchema);

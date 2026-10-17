@@ -16,6 +16,8 @@ import {
   MapPin,
   Star,
   LoaderCircle,
+  MessageCircle,
+  Image,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./ProviderDashboard.css";
@@ -128,42 +130,87 @@ export default function Dashboard() {
 
         <p className="sidebar-label">WORKSPACE</p>
 
-        <button className="provider-nav active">
-          <LayoutDashboard size={19} />
-          Dashboard
-        </button>
+        
+<button
+  className="provider-nav active"
+  onClick={() => navigate("/provider/dashboard")}
+>
+  <LayoutDashboard size={19} />
+  Dashboard
+</button>
 
-        <button
-          className="provider-nav"
-          onClick={() => navigate("/provider/bookings")}
-        >
-          <CalendarDays size={19} />
-          My Bookings
-        </button>
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/availability")}
+>
+  <Clock size={19} />
+  Availability
+</button>
 
-        <button
-          className="provider-nav"
-          onClick={() => navigate("/provider/services")}
-        >
-          <BriefcaseBusiness size={19} />
-          My Services
-        </button>
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/booking-requests")}
+>
+  <CalendarDays size={19} />
+  Booking Requests
+</button>
 
-        <button
-          className="provider-nav"
-          onClick={() => navigate("/provider/profile")}
-        >
-          <UserRound size={19} />
-          My Profile
-        </button>
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/my-jobs")}
+>
+  <BriefcaseBusiness size={19} />
+  My Jobs
+</button>
 
-        <button
-          className="provider-nav"
-          onClick={() => navigate("/provider/settings")}
-        >
-          <Settings size={19} />
-          Settings
-        </button>
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/earnings")}
+>
+  <IndianRupee size={19} />
+  Earnings
+</button>
+
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/reviews")}
+>
+  <Star size={19} />
+  Reviews
+</button>
+
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/chat")}
+>
+  <MessageCircle size={19} />
+  Chat
+</button>
+
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/portfolio")}
+>
+  <Image size={19} />
+  Portfolio
+</button>
+
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/profile")}
+>
+  <UserRound size={19} />
+  My Profile
+</button>
+
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/settings")}
+>
+  <Settings size={19} />
+  Settings
+</button>
+
 
         <div className="provider-sidebar-bottom">
           <div className="provider-help">

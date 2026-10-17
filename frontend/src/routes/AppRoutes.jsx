@@ -28,6 +28,19 @@ import Payment from "../pages/customer/Payment";
 import Profile from "../pages/customer/Profile";
 import SearchProviders from "../pages/customer/SearchProviders";
 
+
+import Availability from "../pages/provider/Availability";
+import BookingRequests from "../pages/provider/BookingRequests";
+import ProviderChat from "../pages/provider/Chat";
+import Earnings from "../pages/provider/Earnings";
+import MyJobs from "../pages/provider/MyJobs";
+import Portfolio from "../pages/provider/Portfolio";
+import ProviderProfile from "../pages/provider/Profile";
+import Reviews from "../pages/provider/Reviews";
+
+
+import AdminDashboard from "../pages/admin/Dashboard";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -50,6 +63,46 @@ export default function AppRoutes() {
         path="/provider/dashboard"
         element={<ProviderDashboard />}
       />
+
+      
+{/* Provider features */}
+<Route
+  path="/provider/availability"
+  element={<Availability />}
+/>
+<Route
+  path="/provider/booking-requests"
+  element={<BookingRequests />}
+/>
+<Route
+  path="/provider/my-jobs"
+  element={<MyJobs />}
+/>
+<Route
+  path="/provider/earnings"
+  element={<Earnings />}
+/>
+<Route
+  path="/provider/reviews"
+  element={<Reviews />}
+/>
+<Route
+  path="/provider/chat"
+  element={<ProviderChat />}
+/>
+<Route
+  path="/provider/portfolio"
+  element={<Portfolio />}
+/>
+<Route
+  path="/provider/profile"
+  element={<ProviderProfile />}
+/>
+<Route
+  path="/provider/settings"
+  element={<ProviderProfile />}
+/>
+
 
       {/* Customer dashboard */}
       <Route
@@ -98,6 +151,12 @@ export default function AppRoutes() {
         path="/customer/profile"
         element={<Profile />}
       />
+
+
+      <Route path="/admin/Dashboard" element={<AdminDashboard />} />
+
     </Routes>
+
+    
   );
 }

@@ -4,6 +4,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 const connectDB = require("./config/db");
+const adminRoutes = require("./routes/adminRoutes");
+const complaintRoutes = require("./routes/complaintroutes");
 
 dotenv.config();
 
@@ -61,3 +63,7 @@ app.get("/user", async (req, res) => {
         res.status(400).send("error");
     }
 })
+
+app.use("/api/admin", adminRoutes);
+
+app.use("/api/complaints", complaintRoutes);
