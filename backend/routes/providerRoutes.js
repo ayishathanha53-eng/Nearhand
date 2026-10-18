@@ -7,6 +7,7 @@ const Provider = require("../models/provider");
 const Booking = require("../models/Booking");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
+const ManualEarning = require("../models/ManualEarning");
 
 
 // ===============================
@@ -407,11 +408,34 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
     return res.status(200).json({
       success: true,
       provider: {
-        id: provider._id,
-        fullName: provider.fullName,
-        serviceCategory: provider.serviceCategory,
-        verificationStatus: provider.verificationStatus,
-      },
+  id: provider._id,
+  fullName: provider.fullName,
+  email: provider.email,
+  phone: provider.phone,
+  serviceCategory: provider.serviceCategory,
+  serviceArea: provider.serviceArea,
+  city: provider.city,
+  about: provider.about,
+  profilePhoto: provider.profilePhoto,
+
+  verificationStatus: provider.verificationStatus,
+
+  serviceDescription: provider.serviceDescription || "",
+  skills: provider.skills || [],
+  languages: provider.languages || [],
+  workingHours: provider.workingHours || [],
+  startingPrice: provider.startingPrice ?? 0,
+  appointmentDuration: provider.appointmentDuration ?? 60,
+  bufferMinutes: provider.bufferMinutes ?? 15,
+  minimumBookingNoticeHours:
+    provider.minimumBookingNoticeHours ?? 2,
+  serviceRadiusKm: provider.serviceRadiusKm ?? 10,
+
+  profileCompleted: provider.profileCompleted ?? false,
+  acceptingBookings: provider.acceptingBookings ?? false,
+  isAvailableForCustomers:
+    provider.isAvailableForCustomers ?? false,
+},
       stats: {
         totalBookings,
         pendingBookings,
@@ -427,6 +451,789 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to load provider dashboard",
+    });
+  }
+});
+
+/* ==========================================
+   PROVIDER SERVICE PROFILE SETUP
+========================================== */
+
+router.patch("/setup", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Provider access required.",
+      });
+    }
+
+    const provider = await Provider.findById(req.user.id);
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider account not found.",
+      });
+    }
+
+    // Only approved providers can configure their live profile.
+    if (provider.verificationStatus !== "Approved") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account must be approved by the admin first.",
+      });
+    }
+
+    const {
+      serviceDescription,
+      skills,
+      languages,
+      workingHours,
+      startingPrice,
+      appointmentDuration,
+      bufferMinutes,
+      minimumBookingNoticeHours,
+      serviceRadiusKm,
+    } = req.body;
+
+    if (
+      typeof serviceDescription !== "string" ||
+      !serviceDescription.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a service description.",
+      });
+    }
+
+    if (
+      !Array.isArray(skills) ||
+      skills.filter((s) => typeof s === "string" && s.trim()).length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please add at least one skill.",
+      });
+    }
+
+    if (!Array.isArray(workingHours) || workingHours.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please configure your working hours.",
+      });
+    }
+
+    const allowedDays = [
+      "Monday", "Tuesday", "Wednesday", "Thursday",
+      "Friday", "Saturday", "Sunday",
+    ];
+
+    const seenDays = new Set();
+
+    for (const day of workingHours) {
+      if (
+        !allowedDays.includes(day.day) ||
+        seenDays.has(day.day) ||
+        typeof day.isWorking !== "boolean"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide valid, unique working days.",
+        });
+      }
+
+      seenDays.add(day.day);
+
+      if (day.isWorking) {
+        const validTime = (time) =>
+          typeof time === "string" &&
+          /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+
+        if (
+          !validTime(day.startTime) ||
+          !validTime(day.endTime) ||
+          day.startTime >= day.endTime
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: `Please check the working hours for ${day.day}.`,
+          });
+        }
+
+        const hasBreak = day.breakStart || day.breakEnd;
+
+        if (hasBreak) {
+          if (
+            !validTime(day.breakStart) ||
+            !validTime(day.breakEnd) ||
+            day.breakStart >= day.breakEnd ||
+            day.breakStart < day.startTime ||
+            day.breakEnd > day.endTime
+          ) {
+            return res.status(400).json({
+              success: false,
+              message: `Please check the break times for ${day.day}.`,
+            });
+          }
+        }
+      }
+    }
+
+    if (!workingHours.some((day) => day.isWorking)) {
+      return res.status(400).json({
+        success: false,
+        message: "Select at least one working day.",
+      });
+    }
+
+    const price = Number(startingPrice);
+
+    if (!Number.isFinite(price) || price <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Starting price must be greater than zero.",
+      });
+    }
+
+    const radius = Number(serviceRadiusKm ?? 10);
+    const duration = Number(appointmentDuration ?? 60);
+    const buffer = Number(bufferMinutes ?? 15);
+    const notice = Number(minimumBookingNoticeHours ?? 2);
+
+    if (
+      !Number.isFinite(radius) || radius < 1 || radius > 200 ||
+      !Number.isInteger(duration) || duration < 15 || duration > 480 ||
+      !Number.isInteger(buffer) || buffer < 0 || buffer > 120 ||
+      !Number.isInteger(notice) || notice < 0 || notice > 720
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please check your booking preferences.",
+      });
+    }
+
+    // Accept only the fields intended for this endpoint.
+    provider.serviceDescription = serviceDescription.trim();
+    provider.skills = skills
+      .filter((s) => typeof s === "string" && s.trim())
+      .map((s) => s.trim());
+    provider.languages = Array.isArray(languages)
+      ? [...new Set(
+          languages
+            .filter((s) => typeof s === "string" && s.trim())
+            .map((s) => s.trim())
+        )]
+      : [];
+    provider.workingHours = workingHours;
+    provider.startingPrice = price;
+    provider.serviceRadiusKm = radius;
+    provider.appointmentDuration = duration;
+    provider.bufferMinutes = buffer;
+    provider.minimumBookingNoticeHours = notice;
+
+    // Setup completion does not activate customer visibility.
+    provider.profileCompleted = true;
+    provider.acceptingBookings = false;
+    provider.isAvailableForCustomers = false;
+
+    await provider.save();
+
+    return res.json({
+      success: true,
+      message:
+        "Service profile saved. Activate it when you are ready to go live.",
+      profileCompleted: provider.profileCompleted,
+      acceptingBookings: provider.acceptingBookings,
+      isAvailableForCustomers: provider.isAvailableForCustomers,
+    });
+  } catch (error) {
+    console.error("Provider setup error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not save your service profile.",
+    });
+  }
+});
+
+
+/* ==========================================
+   PROVIDER GO LIVE / PAUSE
+========================================== */
+
+router.patch("/availability", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Provider access required.",
+      });
+    }
+
+    const { acceptingBookings } = req.body;
+
+    if (typeof acceptingBookings !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide acceptingBookings as true or false.",
+      });
+    }
+
+    const provider = await Provider.findById(req.user.id);
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider account not found.",
+      });
+    }
+
+    if (acceptingBookings) {
+      if (provider.verificationStatus !== "Approved") {
+        return res.status(403).json({
+          success: false,
+          message: "Admin approval is required before going live.",
+        });
+      }
+
+      const hasWorkingDay = provider.workingHours.some(
+        (day) => day.isWorking
+      );
+
+      if (
+        !provider.profileCompleted ||
+        !provider.serviceDescription?.trim() ||
+        !provider.skills?.length ||
+        !provider.startingPrice ||
+        !hasWorkingDay
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Complete your service profile before going live.",
+        });
+      }
+    }
+
+    provider.acceptingBookings = acceptingBookings;
+    provider.isAvailableForCustomers =
+      acceptingBookings &&
+      provider.verificationStatus === "Approved" &&
+      provider.profileCompleted;
+
+    await provider.save();
+
+    return res.json({
+      success: true,
+      message: acceptingBookings
+        ? "Your service profile is now live."
+        : "Your service profile has been paused.",
+      acceptingBookings: provider.acceptingBookings,
+      isAvailableForCustomers: provider.isAvailableForCustomers,
+    });
+  } catch (error) {
+    console.error("Provider availability error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not update your availability.",
+    });
+  }
+});
+
+/* ==========================================
+   PROVIDER SERVICE PROFILE SETUP
+========================================== */
+
+router.patch("/setup", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Provider access required.",
+      });
+    }
+
+    const provider = await Provider.findById(req.user.id);
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider account not found.",
+      });
+    }
+
+    // Only approved providers can configure their live profile.
+    if (provider.verificationStatus !== "Approved") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account must be approved by the admin first.",
+      });
+    }
+
+    const {
+      serviceDescription,
+      skills,
+      languages,
+      workingHours,
+      startingPrice,
+      appointmentDuration,
+      bufferMinutes,
+      minimumBookingNoticeHours,
+      serviceRadiusKm,
+    } = req.body;
+
+    if (
+      typeof serviceDescription !== "string" ||
+      !serviceDescription.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a service description.",
+      });
+    }
+
+    if (
+      !Array.isArray(skills) ||
+      skills.filter((s) => typeof s === "string" && s.trim()).length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please add at least one skill.",
+      });
+    }
+
+    if (!Array.isArray(workingHours) || workingHours.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please configure your working hours.",
+      });
+    }
+
+    const allowedDays = [
+      "Monday", "Tuesday", "Wednesday", "Thursday",
+      "Friday", "Saturday", "Sunday",
+    ];
+
+    const seenDays = new Set();
+
+    for (const day of workingHours) {
+      if (
+        !allowedDays.includes(day.day) ||
+        seenDays.has(day.day) ||
+        typeof day.isWorking !== "boolean"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide valid, unique working days.",
+        });
+      }
+
+      seenDays.add(day.day);
+
+      if (day.isWorking) {
+        const validTime = (time) =>
+          typeof time === "string" &&
+          /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+
+        if (
+          !validTime(day.startTime) ||
+          !validTime(day.endTime) ||
+          day.startTime >= day.endTime
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: `Please check the working hours for ${day.day}.`,
+          });
+        }
+
+        const hasBreak = day.breakStart || day.breakEnd;
+
+        if (hasBreak) {
+          if (
+            !validTime(day.breakStart) ||
+            !validTime(day.breakEnd) ||
+            day.breakStart >= day.breakEnd ||
+            day.breakStart < day.startTime ||
+            day.breakEnd > day.endTime
+          ) {
+            return res.status(400).json({
+              success: false,
+              message: `Please check the break times for ${day.day}.`,
+            });
+          }
+        }
+      }
+    }
+
+    if (!workingHours.some((day) => day.isWorking)) {
+      return res.status(400).json({
+        success: false,
+        message: "Select at least one working day.",
+      });
+    }
+
+    const price = Number(startingPrice);
+
+    if (!Number.isFinite(price) || price <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Starting price must be greater than zero.",
+      });
+    }
+
+    const radius = Number(serviceRadiusKm ?? 10);
+    const duration = Number(appointmentDuration ?? 60);
+    const buffer = Number(bufferMinutes ?? 15);
+    const notice = Number(minimumBookingNoticeHours ?? 2);
+
+    if (
+      !Number.isFinite(radius) || radius < 1 || radius > 200 ||
+      !Number.isInteger(duration) || duration < 15 || duration > 480 ||
+      !Number.isInteger(buffer) || buffer < 0 || buffer > 120 ||
+      !Number.isInteger(notice) || notice < 0 || notice > 720
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please check your booking preferences.",
+      });
+    }
+
+    // Accept only the fields intended for this endpoint.
+    provider.serviceDescription = serviceDescription.trim();
+    provider.skills = skills
+      .filter((s) => typeof s === "string" && s.trim())
+      .map((s) => s.trim());
+    provider.languages = Array.isArray(languages)
+      ? [...new Set(
+          languages
+            .filter((s) => typeof s === "string" && s.trim())
+            .map((s) => s.trim())
+        )]
+      : [];
+    provider.workingHours = workingHours;
+    provider.startingPrice = price;
+    provider.serviceRadiusKm = radius;
+    provider.appointmentDuration = duration;
+    provider.bufferMinutes = buffer;
+    provider.minimumBookingNoticeHours = notice;
+
+    // Save the completed setup without changing the provider's
+// existing live/paused status.
+provider.profileCompleted = true;
+
+    await provider.save();
+
+    return res.json({
+      success: true,
+      message:
+        "Service profile saved. Activate it when you are ready to go live.",
+      profileCompleted: provider.profileCompleted,
+      acceptingBookings: provider.acceptingBookings,
+      isAvailableForCustomers: provider.isAvailableForCustomers,
+    });
+  } catch (error) {
+    console.error("Provider setup error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not save your service profile.",
+    });
+  }
+});
+
+
+/* ==========================================
+   PROVIDER GO LIVE / PAUSE
+========================================== */
+
+router.patch("/availability", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Provider access required.",
+      });
+    }
+
+    const { acceptingBookings } = req.body;
+
+    if (typeof acceptingBookings !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide acceptingBookings as true or false.",
+      });
+    }
+
+    const provider = await Provider.findById(req.user.id);
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider account not found.",
+      });
+    }
+
+    if (acceptingBookings) {
+      if (provider.verificationStatus !== "Approved") {
+        return res.status(403).json({
+          success: false,
+          message: "Admin approval is required before going live.",
+        });
+      }
+
+      const hasWorkingDay = provider.workingHours.some(
+        (day) => day.isWorking
+      );
+
+      if (
+        !provider.profileCompleted ||
+        !provider.serviceDescription?.trim() ||
+        !provider.skills?.length ||
+        !provider.startingPrice ||
+        !hasWorkingDay
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Complete your service profile before going live.",
+        });
+      }
+    }
+
+    provider.acceptingBookings = acceptingBookings;
+    provider.isAvailableForCustomers =
+      acceptingBookings &&
+      provider.verificationStatus === "Approved" &&
+      provider.profileCompleted;
+
+    await provider.save();
+
+    return res.json({
+      success: true,
+      message: acceptingBookings
+        ? "Your service profile is now live."
+        : "Your service profile has been paused.",
+      acceptingBookings: provider.acceptingBookings,
+      isAvailableForCustomers: provider.isAvailableForCustomers,
+    });
+  } catch (error) {
+    console.error("Provider availability error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not update your availability.",
+    });
+  }
+});
+
+
+/* ==========================================
+   PROVIDER EARNINGS
+========================================== */
+
+// Get booking earnings and manual earnings
+router.get("/earnings", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Provider access required.",
+      });
+    }
+
+    const provider = await Provider.findById(req.user.id).select("_id");
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider account not found.",
+      });
+    }
+
+    const [bookingSummary, outstandingSummary, manualSummary, bookings, manualEntries] =
+      await Promise.all([
+        // Completed bookings whose payment has been received
+        Booking.aggregate([
+          {
+            $match: {
+              provider: provider._id,
+              status: "Completed",
+              paymentStatus: "Paid",
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: "$price" },
+              count: { $sum: 1 },
+            },
+          },
+        ]),
+
+        // Completed bookings not yet marked as paid
+        Booking.aggregate([
+          {
+            $match: {
+              provider: provider._id,
+              status: "Completed",
+              paymentStatus: { $ne: "Paid" },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: "$price" },
+              count: { $sum: 1 },
+            },
+          },
+        ]),
+
+        // Manually recorded money received outside booking payments
+        ManualEarning.aggregate([
+          { $match: { provider: provider._id } },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: "$amount" },
+              count: { $sum: 1 },
+            },
+          },
+        ]),
+
+        Booking.find({
+          provider: provider._id,
+          status: "Completed",
+          paymentStatus: "Paid",
+        })
+          .select("serviceName price bookingDate paymentStatus updatedAt")
+          .sort({ updatedAt: -1 })
+          .limit(100)
+          .lean(),
+
+        ManualEarning.find({ provider: provider._id })
+          .select("amount description receivedAt paymentMethod notes createdAt")
+          .sort({ receivedAt: -1 })
+          .limit(100)
+          .lean(),
+      ]);
+
+    const bookingEarnings = bookingSummary[0]?.total || 0;
+    const manualEarnings = manualSummary[0]?.total || 0;
+
+    return res.json({
+      success: true,
+      summary: {
+        bookingEarnings,
+        manualEarnings,
+        totalEarnings: bookingEarnings + manualEarnings,
+        outstandingPayments: outstandingSummary[0]?.total || 0,
+        paidBookingCount: bookingSummary[0]?.count || 0,
+        manualEntryCount: manualSummary[0]?.count || 0,
+        outstandingBookingCount: outstandingSummary[0]?.count || 0,
+      },
+      bookings,
+      manualEntries,
+    });
+  } catch (error) {
+    console.error("Provider earnings error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load earnings.",
+    });
+  }
+});
+
+
+// Add income received outside NearHand booking payments
+router.post("/earnings/manual", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Provider access required.",
+      });
+    }
+
+    const provider = await Provider.findById(req.user.id).select("_id");
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider account not found.",
+      });
+    }
+
+    const { amount, description, receivedAt, paymentMethod, notes } = req.body;
+    const parsedAmount = Number(amount);
+
+    if (
+      amount === "" ||
+      amount === null ||
+      amount === undefined ||
+      !Number.isFinite(parsedAmount) ||
+      parsedAmount <= 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter a valid amount greater than zero.",
+      });
+    }
+
+    if (
+      typeof description !== "string" ||
+      !description.trim() ||
+      description.trim().length > 200
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter a description (maximum 200 characters).",
+      });
+    }
+
+    const date = receivedAt ? new Date(receivedAt) : new Date();
+
+    if (Number.isNaN(date.getTime()) || date > new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter a valid date that is not in the future.",
+      });
+    }
+
+    const allowedMethods = [
+      "Cash",
+      "UPI",
+      "Bank Transfer",
+      "Other",
+    ];
+
+    const method = paymentMethod || "Cash";
+
+    if (!allowedMethods.includes(method)) {
+      return res.status(400).json({
+        success: false,
+        message: "Choose a valid payment method.",
+      });
+    }
+
+    const entry = await ManualEarning.create({
+      provider: provider._id,
+      amount: parsedAmount,
+      description: description.trim(),
+      receivedAt: date,
+      paymentMethod: method,
+      notes: typeof notes === "string" ? notes.trim() : "",
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Manual earning added successfully.",
+      entry,
+    });
+  } catch (error) {
+    console.error("Add manual earning error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to add manual earning.",
     });
   }
 });
