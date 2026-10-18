@@ -38,8 +38,10 @@ import Portfolio from "../pages/provider/Portfolio";
 import ProviderProfile from "../pages/provider/Profile";
 import Reviews from "../pages/provider/Reviews";
 
-
+import AdminLogin from "../pages/admin/adminLogin";
 import AdminDashboard from "../pages/admin/Dashboard";
+import ProviderDetails from "../pages/admin/ProviderDetails";
+
 
 export default function AppRoutes() {
   return (
@@ -153,7 +155,14 @@ export default function AppRoutes() {
       />
 
 
-      <Route path="/admin/Dashboard" element={<AdminDashboard />} />
+      {/* Admin pages */}
+{/* Admin pages */}
+<Route path="/admin/login" element={<AdminLogin />} />
+<Route path="/admin/Dashboard" element={<AdminDashboard />} />
+<Route
+  path="/admin/providers/:id"
+  element={<ProviderDetails />}
+/>
 
     </Routes>
 

@@ -136,7 +136,7 @@ verificationReviewedAt: {
   default: null,
 },
 verificationReviewedBy: {
-  type: mongoose.Schema.Types.ObjectId,
+  type: String,
   default: null,
 },
 rejectionReason: {
@@ -147,6 +147,34 @@ isAvailableForCustomers: {
   type: Boolean,
   default: false,
 },
+
+interviewStatus: {
+  type: String,
+  enum: ["Not Scheduled", "Scheduled", "Completed"],
+  default: "Not Scheduled",
+},
+
+interviewDate: {
+  type: Date,
+  default: null,
+},
+
+interviewNotes: {
+  type: String,
+  default: "",
+},
+
+interviewResult: {
+  type: String,
+  enum: ["Pending", "Pass", "Fail"],
+  default: "Pending",
+},
+
+interviewCompletedAt: {
+  type: Date,
+  default: null,
+},
+
   },
   {
     timestamps: true

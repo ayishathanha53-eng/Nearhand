@@ -484,7 +484,7 @@ function StatCard({ title, value, subtitle, icon, color }) {
     <div className="provider-stat-card">
       <div className={`stat-icon ${color}`}>{icon}</div>
       <p className="stat-title">{title}</p>
-      <h2>{value}</h2>a
+      <h2>{value}</h2>
       <p className="stat-subtitle">{subtitle}</p>
     </div>
   );

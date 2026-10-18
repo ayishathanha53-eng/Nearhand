@@ -6,6 +6,7 @@ const path = require("path");
 const connectDB = require("./config/db");
 const adminRoutes = require("./routes/adminRoutes");
 const complaintRoutes = require("./routes/complaintroutes");
+const adminAuthRoutes = require("./routes/adminAuthRoutes");
 
 dotenv.config();
 
@@ -67,3 +68,5 @@ app.get("/user", async (req, res) => {
 app.use("/api/admin", adminRoutes);
 
 app.use("/api/complaints", complaintRoutes);
+
+app.use("/api/admin-auth", adminAuthRoutes);
