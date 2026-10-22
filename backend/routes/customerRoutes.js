@@ -314,5 +314,66 @@ router.post("/bookings", authMiddleware, async (req, res) => {
     });
   }
 });
+// Add these imports at the top if not already present
 
+
+
+// 1. Get the logged-in customer's booking history
+router.get("/bookings", authMiddleware, async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      customer: req.user.id,
+    })
+      .populate("provider")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      bookings,
+    });
+  } catch (error) {
+    console.error("Fetch customer bookings error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch booking history",
+    });
+  }
+});
+
+// 2. Get one booking, only if it belongs to the logged-in customer
+router.get("/bookings/:bookingId", authMiddleware, async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    if (!/^[0-9a-fA-F]{24}$/.test(bookingId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID",
+      });
+    }
+
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      customer: req.user.id,
+    }).populate("provider");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      booking,
+    });
+  } catch (error) {
+    console.error("Fetch booking details error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch booking details",
+    });
+  }
+});
 module.exports = router;

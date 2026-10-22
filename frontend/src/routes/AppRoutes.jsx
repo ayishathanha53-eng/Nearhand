@@ -131,9 +131,10 @@ export default function AppRoutes() {
         element={<BookingHistory />}
       />
       <Route
-        path="/customer/booking-details"
-        element={<BookingDetails />}
+        path="/customer/booking-details/:bookingId"
+        element={<BookingDetails  />}
       />
+      
       <Route
         path="/customer/favorites"
         element={<Favorites />}

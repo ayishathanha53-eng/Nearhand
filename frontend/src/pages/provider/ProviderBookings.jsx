@@ -1,5 +1,6 @@
 
 import React, { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   CalendarDays,
   MapPin,
@@ -384,6 +385,19 @@ export default function ProviderBookings() {
 
       <header className="provider-bookings-header">
         <div>
+        <Link
+            to="/provider/dashboard"
+            style={{
+                display: "inline-block",
+                marginBottom: "12px",
+                color: "#177d4b",
+                textDecoration: "none",
+                fontWeight: 600,
+                fontSize: "15px",
+            }}
+            >
+            ← Back to Provider Dashboard
+            </Link>
           <h1>Booking Requests</h1>
           <p>Manage your customer bookings and service progress.</p>
         </div>

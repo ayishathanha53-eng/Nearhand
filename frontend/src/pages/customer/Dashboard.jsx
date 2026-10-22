@@ -124,13 +124,7 @@ export default function Dashboard() {
       Booking History
     </button>
 
-    <button
-      className="customer-nav"
-      onClick={() => navigate("/customer/booking-details")}
-    >
-      <FileText size={19} />
-      Booking Details
-    </button>
+    
 
     <button
       className="customer-nav"
