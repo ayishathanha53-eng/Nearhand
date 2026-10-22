@@ -141,65 +141,91 @@ export default function ProviderBookings() {
     }
   };
 
-  const renderActions = (booking) => {
+  
+    const renderActions = (booking) => {
     const busy = updatingId === booking._id;
 
-    if (booking.status === "Pending") {
-      return (
+    const actionsByStatus = {
+        Pending: [
+        {
+            label: "Accept Booking",
+            status: "Confirmed",
+            icon: <CheckCircle2 size={17} />,
+            className: "accept",
+        },
+        {
+            label: "Reject Booking",
+            status: "Cancelled",
+            icon: <XCircle size={17} />,
+            className: "reject",
+        },
+        ],
+
+        Confirmed: [
+        {
+            label: "Start Service",
+            status: "In Progress",
+            icon: <PlayCircle size={17} />,
+            className: "accept",
+        },
+        {
+            label: "Cancel Booking",
+            status: "Cancelled",
+            icon: <XCircle size={17} />,
+            className: "reject",
+        },
+        ],
+
+        "In Progress": [
+        {
+            label: "Complete Service",
+            status: "Completed",
+            icon: <ClipboardCheck size={17} />,
+            className: "accept",
+        },
+        ],
+
+        Completed: [],
+        Cancelled: [],
+    };
+
+    const actions = actionsByStatus[booking.status] || [];
+
+    if (actions.length === 0) {
+        return (
+        <p style={{ color: "#647568", margin: 0, fontSize: 13 }}>
+            {booking.status === "Completed"
+            ? "Service completed successfully."
+            : booking.status === "Cancelled"
+            ? "This booking has been cancelled."
+            : "No actions available."}
+        </p>
+        );
+    }
+
+    return (
         <div className="provider-booking-actions">
-          <button
+        {actions.map((action) => (
+            <button
+            key={action.status}
             type="button"
-            className="provider-booking-button accept"
+            className={`provider-booking-button ${action.className}`}
             disabled={busy}
-            onClick={() => updateStatus(booking._id, "Confirmed")}
-          >
-            {busy ? <LoaderCircle size={17} /> : <CheckCircle2 size={17} />}
-            Accept Booking
-          </button>
+            onClick={() => updateStatus(booking._id, action.status)}
+            >
+            {busy ? (
+                <LoaderCircle size={17} />
+            ) : (
+                action.icon
+            )}
 
-          <button
-            type="button"
-            className="provider-booking-button reject"
-            disabled={busy}
-            onClick={() => updateStatus(booking._id, "Cancelled")}
-          >
-            <XCircle size={17} />
-            Reject
-          </button>
+            {busy ? "Updating..." : action.label}
+            </button>
+        ))}
         </div>
-      );
-    }
+    );
+    };
 
-    if (booking.status === "Confirmed") {
-      return (
-        <button
-          type="button"
-          className="provider-booking-button accept"
-          disabled={busy}
-          onClick={() => updateStatus(booking._id, "In Progress")}
-        >
-          <PlayCircle size={17} />
-          Start Service
-        </button>
-      );
-    }
-
-    if (booking.status === "In Progress") {
-      return (
-        <button
-          type="button"
-          className="provider-booking-button accept"
-          disabled={busy}
-          onClick={() => updateStatus(booking._id, "Completed")}
-        >
-          <ClipboardCheck size={17} />
-          Complete Service
-        </button>
-      );
-    }
-
-    return null;
-  };
 
   return (
     <main className="provider-bookings-page">

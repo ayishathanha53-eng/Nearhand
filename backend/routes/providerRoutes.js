@@ -1286,28 +1286,27 @@ router.get("/bookings", authMiddleware, async (req, res) => {
 
 // PATCH /api/providers/bookings/:bookingId/status
 // Update a booking only if it belongs to this provider.
+// PATCH /api/providers/bookings/:bookingId/status
+// Keep the authentication and provider-role middleware
+// from your existing working PATCH route.
+
 router.patch(
   "/bookings/:bookingId/status",
-  authMiddleware,
+  authMiddleware, // Keep your existing middleware name
   async (req, res) => {
     try {
-      if (req.user?.role?.toLowerCase() !== "provider") {
-        return res.status(403).json({
-          success: false,
-          message: "Only providers can update booking status.",
-        });
-      }
-
       const { bookingId } = req.params;
       const { status } = req.body;
 
-      if (!mongoose.isValidObjectId(bookingId)) {
+      // 1. Validate booking ID
+      if (!mongoose.Types.ObjectId.isValid(bookingId)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid booking ID.",
+          message: "Invalid booking ID",
         });
       }
 
+      // 2. Only these status transitions are permitted
       const allowedTransitions = {
         Confirmed: ["Pending"],
         Cancelled: ["Pending", "Confirmed"],
@@ -1315,29 +1314,30 @@ router.patch(
         Completed: ["In Progress"],
       };
 
-      if (
-        typeof status !== "string" ||
-        !Object.prototype.hasOwnProperty.call(
-          allowedTransitions,
-          status
-        )
-      ) {
+      const allowedStatuses = Object.keys(allowedTransitions);
+
+      if (!allowedStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid booking status.",
+          message: "Invalid booking status",
+          allowedStatuses,
         });
       }
 
-      const provider = await Provider.findById(req.user.id).select("_id");
+      // 3. Find the provider associated with the logged-in account.
+      // If your working GET bookings route uses a different lookup,
+      // reuse that same provider lookup here.
+      const provider = await Provider.findById(req.user.id)
+      .select("-password");
 
       if (!provider) {
         return res.status(404).json({
           success: false,
-          message: "Provider account not found.",
+          message: "Provider profile not found",
         });
       }
 
-      // The provider filter prevents updating another provider's booking.
+      // 4. Find only bookings owned by this provider
       const booking = await Booking.findOne({
         _id: bookingId,
         provider: provider._id,
@@ -1346,33 +1346,48 @@ router.patch(
       if (!booking) {
         return res.status(404).json({
           success: false,
-          message: "Booking not found for this provider.",
+          message: "Booking not found for this provider",
         });
       }
 
-      if (!allowedTransitions[status].includes(booking.status)) {
+      // 5. Enforce the current -> next status transition
+      const permittedPreviousStatuses = allowedTransitions[status];
+
+      if (!permittedPreviousStatuses.includes(booking.status)) {
         return res.status(409).json({
           success: false,
-          message: `Cannot change booking from ${booking.status} to ${status}.`,
+          message: `Cannot change booking from "${booking.status}" to "${status}"`,
+          currentStatus: booking.status,
+          requestedStatus: status,
+          allowedNextStatuses:
+            booking.status === "Pending"
+              ? ["Confirmed", "Cancelled"]
+              : booking.status === "Confirmed"
+              ? ["In Progress", "Cancelled"]
+              : booking.status === "In Progress"
+              ? ["Completed"]
+              : [],
         });
       }
 
+      // 6. Save the validated status
       booking.status = status;
       await booking.save();
 
-      const updatedBooking = await Booking.findById(booking._id)
-        .populate("customer", "fullName name email phone");
+      // 7. Return the updated booking
+      await booking.populate("customer", "fullName name email phone");
 
-      return res.json({
+      return res.status(200).json({
         success: true,
-        message: `Booking ${status.toLowerCase()} successfully.`,
-        booking: updatedBooking,
+        message: `Booking status updated to ${status}`,
+        booking,
       });
     } catch (error) {
       console.error("Update booking status error:", error);
+
       return res.status(500).json({
         success: false,
-        message: "Failed to update booking status.",
+        message: "Failed to update booking status",
       });
     }
   }
