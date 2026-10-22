@@ -9,7 +9,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 const ManualEarning = require("../models/ManualEarning");
 
-
+const mongoose = require("mongoose");
 // ===============================
 // CREATE UPLOAD FOLDERS
 // ===============================
@@ -1238,5 +1238,144 @@ router.post("/earnings/manual", authMiddleware, async (req, res) => {
   }
 });
 
+
+/*
+ * Provider booking management
+ * Mounted at /api/providers in your server.
+ */
+
+// GET /api/providers/bookings
+// Get bookings belonging to the logged-in provider.
+router.get("/bookings", authMiddleware, async (req, res) => {
+  try {
+    if (req.user?.role?.toLowerCase() !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Only providers can view provider bookings.",
+      });
+    }
+
+    const provider = await Provider.findById(req.user.id).select("_id");
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider account not found.",
+      });
+    }
+
+    const bookings = await Booking.find({
+      provider: provider._id,
+    })
+      .populate("customer", "fullName name email phone")
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      count: bookings.length,
+      bookings,
+    });
+  } catch (error) {
+    console.error("Fetch provider bookings error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load bookings.",
+    });
+  }
+});
+
+// PATCH /api/providers/bookings/:bookingId/status
+// Update a booking only if it belongs to this provider.
+router.patch(
+  "/bookings/:bookingId/status",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      if (req.user?.role?.toLowerCase() !== "provider") {
+        return res.status(403).json({
+          success: false,
+          message: "Only providers can update booking status.",
+        });
+      }
+
+      const { bookingId } = req.params;
+      const { status } = req.body;
+
+      if (!mongoose.isValidObjectId(bookingId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid booking ID.",
+        });
+      }
+
+      const allowedTransitions = {
+        Confirmed: ["Pending"],
+        Cancelled: ["Pending", "Confirmed"],
+        "In Progress": ["Confirmed"],
+        Completed: ["In Progress"],
+      };
+
+      if (
+        typeof status !== "string" ||
+        !Object.prototype.hasOwnProperty.call(
+          allowedTransitions,
+          status
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid booking status.",
+        });
+      }
+
+      const provider = await Provider.findById(req.user.id).select("_id");
+
+      if (!provider) {
+        return res.status(404).json({
+          success: false,
+          message: "Provider account not found.",
+        });
+      }
+
+      // The provider filter prevents updating another provider's booking.
+      const booking = await Booking.findOne({
+        _id: bookingId,
+        provider: provider._id,
+      });
+
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: "Booking not found for this provider.",
+        });
+      }
+
+      if (!allowedTransitions[status].includes(booking.status)) {
+        return res.status(409).json({
+          success: false,
+          message: `Cannot change booking from ${booking.status} to ${status}.`,
+        });
+      }
+
+      booking.status = status;
+      await booking.save();
+
+      const updatedBooking = await Booking.findById(booking._id)
+        .populate("customer", "fullName name email phone");
+
+      return res.json({
+        success: true,
+        message: `Booking ${status.toLowerCase()} successfully.`,
+        booking: updatedBooking,
+      });
+    } catch (error) {
+      console.error("Update booking status error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update booking status.",
+      });
+    }
+  }
+);
 
 module.exports = router;

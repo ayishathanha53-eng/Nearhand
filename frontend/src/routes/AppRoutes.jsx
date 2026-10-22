@@ -27,6 +27,7 @@ import Notifications from "../pages/customer/Notifications";
 import Payment from "../pages/customer/Payment";
 import Profile from "../pages/customer/Profile";
 import SearchProviders from "../pages/customer/SearchProviders";
+import ProviderBookings from "../pages/provider/ProviderBookings";
 
 
 import Availability from "../pages/provider/Availability";
@@ -103,6 +104,10 @@ export default function AppRoutes() {
 <Route
   path="/provider/settings"
   element={<ProviderProfile />}
+/>
+<Route
+  path="/provider/bookings"
+  element={<ProviderBookings />}
 />
 
 

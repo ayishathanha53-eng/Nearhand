@@ -182,14 +182,19 @@ export default function SearchProviders() {
               >
                 <div className="customer-provider-card-top">
                   <div className="customer-provider-avatar">
-                    {provider.profilePhoto ? (
-                      <img
-                        src={provider.profilePhoto}
-                        alt={provider.fullName || "Service provider"}
-                      />
-                    ) : (
-                      <UserRound size={30} />
-                    )}
+                    
+                  {provider.profilePhoto ? (
+                    <img
+                      src={`http://localhost:5000/${provider.profilePhoto.replace(/\\/g, "/").replace(/^\/+/, "")}`}
+                      alt={provider.fullName || "Service provider"}
+                      onError={(event) => {
+                        event.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <UserRound size={30} />
+                  )}
+
                   </div>
 
                   <span className="customer-provider-live">

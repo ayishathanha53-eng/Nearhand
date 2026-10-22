@@ -147,9 +147,12 @@ export default function Dashboard() {
   Availability
 </button>
 
-<button
+ <button
   className="provider-nav"
-  onClick={() => navigate("/provider/booking-requests")}
+  onClick={() => {
+    setSidebarOpen(false);
+    navigate("/provider/bookings");
+  }}
 >
   <CalendarDays size={19} />
   Booking Requests
