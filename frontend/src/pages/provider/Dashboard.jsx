@@ -1,5 +1,7 @@
 
 import { useEffect, useState } from "react";
+import NotificationBell from "../../components/NotificationBell";
+
 import {
   LayoutDashboard,
   CalendarDays,
@@ -240,38 +242,57 @@ export default function Dashboard() {
       )}
 
       <main className="provider-main">
-        <header className="provider-header">
+        
+      <header className="provider-header">
+        <button
+          className="provider-menu-button"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle menu"
+        >
+          <Menu size={22} />
+        </button>
+
+        <div className="provider-breadcrumb">
+          <span>Workspace</span>
+          <span>/</span>
+          <strong>Dashboard</strong>
+        </div>
+
+        <div className="provider-header-right">
+          <NotificationBell />
+
+          <div className="provider-status">
+            <span
+              className={`status-dot ${
+                provider.verificationStatus === "Approved" ? "approved" : ""
+              }`}
+            />
+            {provider.verificationStatus || "Pending"}
+          </div>
+
           <button
-            className="provider-menu-button"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label="Toggle menu"
+            type="button"
+            className="provider-avatar"
+            onClick={() => navigate("/provider/profile")}
+            aria-label="Open my provider profile"
+            title="My Profile"
           >
-            <Menu size={22} />
-          </button>
-
-          <div className="provider-breadcrumb">
-            <span>Workspace</span>
-            <span>/</span>
-            <strong>Dashboard</strong>
-          </div>
-
-          <div className="provider-header-right">
-            <div className="provider-status">
-              <span
-                className={`status-dot ${
-                  provider.verificationStatus === "Approved"
-                    ? "approved"
-                    : ""
-                }`}
+            {provider.profilePhoto ? (
+              <img
+                src={
+                  provider.profilePhoto.startsWith("http")
+                    ? provider.profilePhoto
+                    : `${API_URL}${provider.profilePhoto}`
+                }
+                alt="My profile"
               />
-              {provider.verificationStatus || "Pending"}
-            </div>
+            ) : (
+              (provider.fullName || "P").charAt(0).toUpperCase()
+            )}
+          </button>
+        </div>
+      </header>
 
-            <div className="provider-avatar">
-              {(provider.fullName || "P").charAt(0).toUpperCase()}
-            </div>
-          </div>
-        </header>
 
         <section className="provider-content">
           <div className="provider-welcome">

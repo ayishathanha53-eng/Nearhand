@@ -8,6 +8,7 @@ const Booking = require("../models/Booking");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 const ManualEarning = require("../models/ManualEarning");
+const Notification = require("../models/Notification");
 
 const mongoose = require("mongoose");
 // ===============================
@@ -1373,6 +1374,44 @@ router.patch(
       // 6. Save the validated status
       booking.status = status;
       await booking.save();
+      const notificationByStatus = {
+      Confirmed: {
+        title: "Booking accepted",
+        message: `Your ${booking.serviceName} booking has been accepted.`,
+        type: "booking_confirmed",
+      },
+
+      Cancelled: {
+        title: "Booking cancelled",
+        message: `Your ${booking.serviceName} booking has been cancelled.`,
+        type: "booking_cancelled",
+      },
+
+      "In Progress": {
+        title: "Service started",
+        message: `Your ${booking.serviceName} service is now in progress.`,
+        type: "service_started",
+      },
+
+      Completed: {
+        title: "Service completed",
+        message: `Your ${booking.serviceName} service has been completed.`,
+        type: "service_completed",
+      },
+    };
+
+    const notification = notificationByStatus[status];
+
+    if (notification) {
+      await Notification.create({
+        recipientId: booking.customer,
+        recipientRole: "customer",
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        booking: booking._id,
+      });
+    }
 
       // 7. Return the updated booking
       await booking.populate("customer", "fullName name email phone");

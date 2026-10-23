@@ -2,6 +2,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
+const Notification = require("../models/Notification");
+
 
 const Booking = require("../models/Booking");
 const Provider = require("../models/provider");
@@ -290,6 +292,14 @@ router.post("/bookings", authMiddleware, async (req, res) => {
       description: description.trim(),
       price: serverPrice,
       // status and paymentStatus use Booking model defaults.
+    });
+    await Notification.create({
+      recipientId: provider._id,
+      recipientRole: "provider",
+      title: "New booking request",
+      message: `A customer has requested ${finalServiceName}.`,
+      type: "booking_request",
+      booking: booking._id,
     });
 
     return res.status(201).json({

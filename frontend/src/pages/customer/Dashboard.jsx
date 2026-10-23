@@ -1,6 +1,8 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import NotificationBell from "../../components/NotificationBell";
+
 
 import {
   LayoutDashboard,
@@ -186,13 +188,16 @@ export default function Dashboard() {
 
 
       <main className="customer-main">
-        <header className="customer-header">
-          <div>
-            <p className="customer-eyebrow">CUSTOMER DASHBOARD</p>
-            <h1>Welcome to NearHand!</h1>
-            <p>Find trusted professionals for your everyday needs.</p>
-          </div>
+        
+      
+      <header className="customer-header">
+        <div>
+          <p className="customer-eyebrow">CUSTOMER DASHBOARD</p>
+          <h1>Welcome to NearHand!</h1>
+          <p>Find trusted professionals for your everyday needs.</p>
+        </div>
 
+        <div className="customer-header-actions">
           <button
             className="customer-primary-btn"
             onClick={() => navigate("/services")}
@@ -200,7 +205,21 @@ export default function Dashboard() {
             <Search size={18} />
             Find a Service
           </button>
-        </header>
+
+          <NotificationBell />
+
+          <button
+            type="button"
+            className="customer-avatar"
+            onClick={() => navigate("/customer/profile")}
+            aria-label="Open my profile"
+            title="My Profile"
+          >
+            C
+          </button>
+        </div>
+      </header>
+
 
         {error ? (
           <div className="customer-error">

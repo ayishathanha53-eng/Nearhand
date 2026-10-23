@@ -743,3 +743,25 @@
     grid-template-columns: 1fr;
   }
 }
+.provider-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.provider-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.provider-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
