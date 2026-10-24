@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarDays,
@@ -22,6 +22,8 @@ function getLocalDateTime() {
 
 export default function BookService() {
   const navigate = useNavigate();
+const [searchParams] = useSearchParams();
+const requestedProviderId = searchParams.get("providerId") || "";
 
   const [providers, setProviders] = useState([]);
   const [providerId, setProviderId] = useState("");
@@ -70,12 +72,35 @@ export default function BookService() {
 
       setProviders(availableProviders);
 
-      // Keep the selection if it is still available.
-      setProviderId((currentId) =>
-        availableProviders.some((p) => p._id === currentId)
-          ? currentId
-          : ""
-      );
+      // Select the provider requested by the profile page,
+// provided that they are still available for booking.
+setProviderId((currentId) => {
+  if (
+    requestedProviderId &&
+    availableProviders.some(
+      (provider) => provider._id === requestedProviderId
+    )
+  ) {
+    return requestedProviderId;
+  }
+
+  if (availableProviders.some((provider) => provider._id === currentId)) {
+    return currentId;
+  }
+
+  return "";
+});
+
+if (
+  requestedProviderId &&
+  !availableProviders.some(
+    (provider) => provider._id === requestedProviderId
+  )
+) {
+  setError(
+    "The selected provider is no longer available. Please choose another provider."
+  );
+}
 
       if (availableProviders.length === 0) {
         setError("No providers are currently accepting bookings.");

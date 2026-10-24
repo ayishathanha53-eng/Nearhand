@@ -83,6 +83,7 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
 // GET /api/customer/providers
 // ============================================
 
+
 router.get("/providers", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "customer") {
@@ -95,35 +96,59 @@ router.get("/providers", authMiddleware, async (req, res) => {
     const {
       search = "",
       category = "",
-      city = "",
+      pincode = "",
     } = req.query;
 
-    const filter = {
-      ...LIVE_PROVIDER_FILTER,
-      fullName: { $exists: true, $ne: "" },
-      serviceCategory: { $exists: true, $ne: "" },
-      city: { $exists: true, $ne: "" },
-    };
-
-    if (typeof search !== "string" ||
-        typeof category !== "string" ||
-        typeof city !== "string") {
+    if (
+      typeof search !== "string" ||
+      typeof category !== "string" ||
+      typeof pincode !== "string"
+    ) {
       return res.status(400).json({
         success: false,
         message: "Search filters must be text.",
       });
     }
 
+    const cleanedPincode = pincode.trim();
+
+    if (cleanedPincode && !/^\d{6}$/.test(cleanedPincode)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid six-digit PIN code.",
+      });
+    }
+
+    const filter = {
+      ...LIVE_PROVIDER_FILTER,
+      fullName: { $exists: true, $ne: "" },
+      serviceCategory: { $exists: true, $ne: "" },
+    };
+
+    if (cleanedPincode) {
+      filter.$and = [
+        {
+          $or: [
+            { servicePincodes: cleanedPincode },
+            {
+              $and: [
+                {
+                  $or: [
+                    { servicePincodes: { $exists: false } },
+                    { servicePincodes: { $size: 0 } },
+                  ],
+                },
+                { pincode: cleanedPincode },
+              ],
+            },
+          ],
+        },
+      ];
+    }
+
     if (category.trim()) {
       filter.serviceCategory = {
         $regex: escapeRegex(category.trim()),
-        $options: "i",
-      };
-    }
-
-    if (city.trim()) {
-      filter.city = {
-        $regex: escapeRegex(city.trim()),
         $options: "i",
       };
     }
@@ -134,19 +159,25 @@ router.get("/providers", authMiddleware, async (req, res) => {
         $options: "i",
       };
 
-      filter.$or = [
-        { fullName: term },
-        { serviceCategory: term },
-        { serviceArea: term },
-        { city: term },
-        { serviceDescription: term },
-        { skills: term },
+      filter.$and = [
+        ...(filter.$and || []),
+        {
+          $or: [
+            { fullName: term },
+            { serviceCategory: term },
+            { serviceArea: term },
+            { city: term },
+            { serviceDescription: term },
+            { about: term },
+            { skills: term },
+          ],
+        },
       ];
     }
 
     const providers = await Provider.find(filter)
       .select(
-        "fullName serviceCategory serviceArea city about serviceDescription skills languages startingPrice serviceRadiusKm workingHours profilePhoto"
+        "fullName serviceCategory serviceArea city district state pincode servicePincodes about serviceDescription skills languages startingPrice serviceRadiusKm workingHours profilePhoto experience qualification institution specialization appointmentDuration bufferMinutes minimumBookingNoticeHours"
       )
       .sort({ fullName: 1 })
       .limit(50)
@@ -166,6 +197,7 @@ router.get("/providers", authMiddleware, async (req, res) => {
     });
   }
 });
+
 
 // ============================================
 // CREATE BOOKING SECURELY

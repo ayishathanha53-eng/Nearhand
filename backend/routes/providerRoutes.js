@@ -957,36 +957,44 @@ router.patch("/availability", authMiddleware, async (req, res) => {
     }
 
     if (acceptingBookings) {
-      if (provider.verificationStatus !== "Approved") {
-        return res.status(403).json({
-          success: false,
-          message: "Admin approval is required before going live.",
-        });
-      }
+  if (provider.verificationStatus !== "Approved") {
+    return res.status(403).json({
+      success: false,
+      message: "Admin approval is required before going live.",
+    });
+  }
 
-      const hasWorkingDay = provider.workingHours.some(
-        (day) => day.isWorking
-      );
+  const hasWorkingDay = Array.isArray(provider.workingHours) &&
+    provider.workingHours.some((day) => day.isWorking);
 
-      if (
-        !provider.profileCompleted ||
-        !provider.serviceDescription?.trim() ||
-        !provider.skills?.length ||
-        !provider.startingPrice ||
-        !hasWorkingDay
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "Complete your service profile before going live.",
-        });
-      }
-    }
+  const hasValidServicePincodes =
+    Array.isArray(provider.servicePincodes) &&
+    provider.servicePincodes.length > 0 &&
+    provider.servicePincodes.every((pin) => /^\d{6}$/.test(pin));
 
-    provider.acceptingBookings = acceptingBookings;
-    provider.isAvailableForCustomers =
-      acceptingBookings &&
-      provider.verificationStatus === "Approved" &&
-      provider.profileCompleted;
+  if (
+    !provider.profileCompleted ||
+    !provider.serviceDescription?.trim() ||
+    !Array.isArray(provider.skills) ||
+    provider.skills.length === 0 ||
+    !Number.isFinite(provider.startingPrice) ||
+    provider.startingPrice <= 0 ||
+    !hasWorkingDay ||
+    !hasValidServicePincodes
+  ) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Complete your service profile, including working hours and service PIN codes, before going live.",
+    });
+  }
+}
+
+provider.acceptingBookings = acceptingBookings;
+provider.isAvailableForCustomers =
+  acceptingBookings &&
+  provider.verificationStatus === "Approved" &&
+  provider.profileCompleted;
 
     await provider.save();
 
@@ -1412,6 +1420,59 @@ router.patch(
     }
   }
 );
+
+
+/* ==========================================
+   PUBLIC PROVIDER PROFILE FOR CUSTOMERS
+========================================== */
+
+router.get("/public/:providerId", async (req, res) => {
+  try {
+    const { providerId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(providerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid provider ID.",
+      });
+    }
+
+    const provider = await Provider.findOne({
+      _id: providerId,
+      verificationStatus: "Approved",
+      profileCompleted: true,
+      acceptingBookings: true,
+      isAvailableForCustomers: true,
+    })
+      .select(
+        "fullName serviceCategory serviceArea city district state pincode servicePincodes about serviceDescription skills languages startingPrice serviceRadiusKm workingHours profilePhoto experience highestQualification institution graduationYear appointmentDuration bufferMinutes minimumBookingNoticeHours"
+      )
+      .lean();
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "This provider is currently unavailable.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      provider: {
+        ...provider,
+        id: provider._id,
+      },
+    });
+  } catch (error) {
+    console.error("Public provider profile error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load provider profile.",
+    });
+  }
+});
+
 
 
 /* ==========================================

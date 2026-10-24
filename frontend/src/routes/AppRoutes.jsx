@@ -28,6 +28,7 @@ import Payment from "../pages/customer/Payment";
 import Profile from "../pages/customer/Profile";
 import SearchProviders from "../pages/customer/SearchProviders";
 import CustomerNotifications from "../pages/customer/Notifications";
+import ProviderPublicProfile from "../pages/customer/ProviderPublicProfile";
 
 // Provider pages
 import ProviderBookings from "../pages/provider/ProviderBookings";
@@ -192,6 +193,10 @@ export default function AppRoutes() {
         path="/admin/Dashboard"
         element={<AdminDashboard />}
       />
+      <Route
+  path="/customer/provider/:providerId"
+  element={<ProviderPublicProfile />}
+/>
       <Route
         path="/admin/providers/:id"
         element={<ProviderDetails />}

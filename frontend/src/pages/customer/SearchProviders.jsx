@@ -5,7 +5,6 @@ import {
   Search,
   ArrowLeft,
   MapPin,
-  Star,
   BriefcaseBusiness,
   RefreshCw,
   UserRound,
@@ -18,18 +17,27 @@ export default function SearchProviders() {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
-  const [city, setCity] = useState("");
+  const [pincode, setPincode] = useState("");
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
 
-  async function fetchProviders(searchTerm = "", cityName = "") {
+  async function fetchProviders(searchTerm = "", pin = "") {
     const token = localStorage.getItem("token");
 
     if (!token) {
       setError("Please log in as a customer to search providers.");
       setProviders([]);
+      return;
+    }
+
+    const cleanPin = pin.trim();
+
+    if (cleanPin && !/^\d{6}$/.test(cleanPin)) {
+      setError("Please enter a valid six-digit PIN code.");
+      setProviders([]);
+      setSearched(true);
       return;
     }
 
@@ -39,10 +47,16 @@ export default function SearchProviders() {
     try {
       const params = new URLSearchParams();
 
-      if (searchTerm.trim()) params.set("search", searchTerm.trim());
-      if (cityName.trim()) params.set("city", cityName.trim());
+      if (searchTerm.trim()) {
+        params.set("search", searchTerm.trim());
+      }
+
+      if (cleanPin) {
+        params.set("pincode", cleanPin);
+      }
 
       const query = params.toString();
+
       const response = await fetch(
         `${API_URL}/api/customer/providers${query ? `?${query}` : ""}`,
         {
@@ -74,18 +88,42 @@ export default function SearchProviders() {
 
   function handleSearch(event) {
     event.preventDefault();
-    fetchProviders(search, city);
+    fetchProviders(search, pincode);
   }
 
   function resetSearch() {
     setSearch("");
-    setCity("");
+    setPincode("");
     fetchProviders("", "");
+  }
+
+  function openProvider(provider) {
+    const providerId = provider._id || provider.id;
+
+    if (!providerId) {
+      setError("Unable to open this provider's profile.");
+      return;
+    }
+
+    navigate(`/customer/provider/${providerId}`);
+  }
+
+  function getPhotoUrl(photo) {
+    if (!photo) return "";
+
+    const normalizedPath = photo.replace(/\\/g, "/").replace(/^\/+/, "");
+
+    if (/^https?:\/\//i.test(normalizedPath)) {
+      return normalizedPath;
+    }
+
+    return `${API_URL}/${normalizedPath}`;
   }
 
   return (
     <main className="customer-search-page">
       <button
+        type="button"
         className="customer-search-back"
         onClick={() => navigate("/customer/dashboard")}
       >
@@ -98,7 +136,8 @@ export default function SearchProviders() {
           <p className="customer-search-eyebrow">NEARHAND SERVICES</p>
           <h1>Find your service provider</h1>
           <p>
-            Discover approved professionals who are currently accepting bookings.
+            Search by PIN code and discover approved professionals accepting
+            bookings in your area.
           </p>
         </div>
 
@@ -113,7 +152,7 @@ export default function SearchProviders() {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Try plumbing, electrician, repairs..."
+            placeholder="Service, e.g. plumbing or repairs"
             aria-label="Search services or skills"
           />
         </label>
@@ -121,10 +160,14 @@ export default function SearchProviders() {
         <label className="customer-search-input city-input">
           <MapPin size={19} />
           <input
-            value={city}
-            onChange={(event) => setCity(event.target.value)}
-            placeholder="City"
-            aria-label="Filter by city"
+            value={pincode}
+            onChange={(event) =>
+              setPincode(event.target.value.replace(/\D/g, "").slice(0, 6))
+            }
+            placeholder="6-digit PIN code"
+            aria-label="Search by PIN code"
+            inputMode="numeric"
+            maxLength={6}
           />
         </label>
 
@@ -134,7 +177,7 @@ export default function SearchProviders() {
           disabled={loading}
         >
           <Search size={18} />
-          Search
+          {loading ? "Searching..." : "Search"}
         </button>
       </form>
 
@@ -145,7 +188,9 @@ export default function SearchProviders() {
             <p>
               {loading
                 ? "Finding providers..."
-                : `${providers.length} ${providers.length === 1 ? "provider" : "providers"} found`}
+                : `${providers.length} ${
+                    providers.length === 1 ? "provider" : "providers"
+                  } found`}
             </p>
           </div>
 
@@ -177,24 +222,32 @@ export default function SearchProviders() {
           <div className="customer-provider-grid">
             {providers.map((provider) => (
               <article
-                className="customer-provider-card"
+                className="customer-provider-card customer-provider-card-clickable"
                 key={provider._id || provider.id}
+                onClick={() => openProvider(provider)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openProvider(provider);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`View ${provider.fullName || "provider"} profile`}
               >
                 <div className="customer-provider-card-top">
                   <div className="customer-provider-avatar">
-                    
-                  {provider.profilePhoto ? (
-                    <img
-                      src={`http://localhost:5000/${provider.profilePhoto.replace(/\\/g, "/").replace(/^\/+/, "")}`}
-                      alt={provider.fullName || "Service provider"}
-                      onError={(event) => {
-                        event.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <UserRound size={30} />
-                  )}
-
+                    {provider.profilePhoto ? (
+                      <img
+                        src={getPhotoUrl(provider.profilePhoto)}
+                        alt={provider.fullName || "Service provider"}
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <UserRound size={30} />
+                    )}
                   </div>
 
                   <span className="customer-provider-live">
@@ -214,7 +267,10 @@ export default function SearchProviders() {
                     <MapPin size={15} />
                     {[provider.city, provider.serviceArea]
                       .filter(Boolean)
-                      .filter((value, index, values) => values.indexOf(value) === index)
+                      .filter(
+                        (value, index, values) =>
+                          values.indexOf(value) === index
+                      )
                       .join(" · ")}
                   </p>
                 )}
@@ -225,21 +281,26 @@ export default function SearchProviders() {
                   </p>
                 )}
 
-                {Array.isArray(provider.skills) && provider.skills.length > 0 && (
-                  <div className="customer-provider-skills">
-                    {provider.skills.slice(0, 4).map((skill) => (
-                      <span key={skill}>{skill}</span>
-                    ))}
-                    {provider.skills.length > 4 && (
-                      <span>+{provider.skills.length - 4}</span>
-                    )}
-                  </div>
-                )}
+                {Array.isArray(provider.skills) &&
+                  provider.skills.length > 0 && (
+                    <div className="customer-provider-skills">
+                      {provider.skills.slice(0, 4).map((skill) => (
+                        <span key={skill}>{skill}</span>
+                      ))}
+
+                      {provider.skills.length > 4 && (
+                        <span>+{provider.skills.length - 4}</span>
+                      )}
+                    </div>
+                  )}
 
                 <div className="customer-provider-card-footer">
                   <div className="customer-provider-price">
                     <strong>
-                      ₹{Number(provider.startingPrice || 0).toLocaleString("en-IN")}
+                      ₹
+                      {Number(provider.startingPrice || 0).toLocaleString(
+                        "en-IN"
+                      )}
                     </strong>
                     <span>starting price</span>
                   </div>
@@ -249,6 +310,10 @@ export default function SearchProviders() {
                       ? `${provider.serviceRadiusKm} km radius`
                       : "Service provider"}
                   </div>
+                </div>
+
+                <div className="customer-provider-view-profile">
+                  View profile &amp; working hours →
                 </div>
               </article>
             ))}
@@ -260,16 +325,19 @@ export default function SearchProviders() {
             <div className="customer-search-empty-icon">
               <Search size={28} />
             </div>
+
             <h3>
               {searched
                 ? "No available providers found"
                 : "Find your next service"}
             </h3>
+
             <p>
               {searched
-                ? "Try another service or city. Providers appear here only when their profiles are approved, completed, and live."
+                ? "Try another PIN code or service. Only approved providers with completed profiles who are accepting bookings appear here."
                 : "Search for a service to discover available professionals."}
             </p>
+
             {searched && (
               <button
                 type="button"
