@@ -1,0 +1,285 @@
+
+.notifications-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px;
+  color: #173c2b;
+  box-sizing: border-box;
+}
+
+.notifications-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.notifications-back,
+.notifications-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #dce9e0;
+  border-radius: 10px;
+  background: white;
+  color: #177d4b;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notifications-back:hover,
+.notifications-refresh:hover {
+  background: #edf7f0;
+}
+
+.notifications-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.notifications-title-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.notifications-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  border-radius: 15px;
+  background: #e5f4e9;
+  color: #177d4b;
+}
+
+.notifications-title-row h1 {
+  margin: 0 0 6px;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.notifications-title-row p {
+  margin: 0;
+  color: #708077;
+  font-size: 14px;
+}
+
+.notifications-count {
+  margin-left: auto;
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #edf7f0;
+  color: #177d4b;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.notifications-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #dce9e0;
+  border-radius: 12px;
+  background: #f7fbf8;
+  font-size: 13px;
+  color: #617268;
+}
+
+.notifications-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: #177d4b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notifications-error {
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #b42318;
+}
+
+.notifications-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  gap: 10px;
+  padding: 30px;
+  border: 1px dashed #d5e4d9;
+  border-radius: 16px;
+  background: #fbfdfb;
+  color: #87948b;
+  text-align: center;
+}
+
+.notifications-empty h3 {
+  margin: 4px 0 0;
+  color: #244334;
+}
+
+.notifications-empty p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notifications-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e0eae3;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 3px 12px rgba(20, 55, 35, 0.035);
+}
+
+.notifications-card.is-unread {
+  border-left: 4px solid #218653;
+  background: #f8fcf9;
+}
+
+.notifications-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #e5f4e9;
+  color: #177d4b;
+}
+
+.notifications-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notifications-card-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.notifications-card-heading h3 {
+  margin: 0;
+  color: #244334;
+  font-size: 15px;
+}
+
+.notifications-card-content p {
+  margin: 8px 0;
+  color: #64756a;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.notifications-card-content time {
+  display: block;
+  color: #8a968e;
+  font-size: 12px;
+}
+
+.notifications-new-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: #dff3e5;
+  color: #177d4b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.notifications-read-button,
+.notifications-view-button {
+  margin-top: 10px;
+  padding: 8px 11px;
+  border: 1px solid #d7e7dc;
+  border-radius: 8px;
+  background: white;
+  color: #177d4b;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notifications-read-button:hover,
+.notifications-view-button:hover {
+  background: #edf7f0;
+}
+
+@media (max-width: 640px) {
+  .notifications-page {
+    padding: 16px;
+  }
+
+  .notifications-title-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .notifications-count {
+    margin-left: 69px;
+  }
+
+  .notifications-card {
+    flex-wrap: wrap;
+    padding: 14px;
+  }
+
+  .notifications-read-button {
+    margin-left: 56px;
+  }
+
+  .notifications-topbar {
+    margin-bottom: 22px;
+  }
+}
+/* View Booking Request button */
+.notification-card button,
+
+.notification-view-btn {
+  background-color: #07834a;
+  color: #ffffff;
+  border: 1px solid #07834a;
+  border-radius: 8px;
+  padding: 7px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.notification-card button:hover,
+.notification-view-btn:hover {
+  background-color: #056b3c;
+  border-color: #056b3c;
+  color: #ffffff;
+}

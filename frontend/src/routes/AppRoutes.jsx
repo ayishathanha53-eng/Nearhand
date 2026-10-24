@@ -18,31 +18,34 @@ import CustomerDashboard from "../pages/customer/Dashboard";
 
 // Customer pages
 import BookingDetails from "../pages/customer/BookingDetails";
+import IndividualBooking from "../pages/customer/IndividualBooking";
 import BookingHistory from "../pages/customer/BookingHistory";
 import BookService from "../pages/customer/BookService";
 import Chat from "../pages/customer/Chat";
 import Favorites from "../pages/customer/Favorites";
 import LiveTracking from "../pages/customer/LiveTracking";
-import Notifications from "../pages/customer/Notifications";
 import Payment from "../pages/customer/Payment";
 import Profile from "../pages/customer/Profile";
 import SearchProviders from "../pages/customer/SearchProviders";
+import CustomerNotifications from "../pages/customer/Notifications";
+
+// Provider pages
 import ProviderBookings from "../pages/provider/ProviderBookings";
-
-
 import Availability from "../pages/provider/Availability";
-import BookingRequests from "../pages/provider/BookingRequests";
+
 import ProviderChat from "../pages/provider/Chat";
 import Earnings from "../pages/provider/Earnings";
 import MyJobs from "../pages/provider/MyJobs";
 import Portfolio from "../pages/provider/Portfolio";
 import ProviderProfile from "../pages/provider/Profile";
 import Reviews from "../pages/provider/Reviews";
+import ProviderNotifications from "../pages/provider/Notifications";
+import ProviderBookingDetails from "../pages/provider/BookingDetails";
 
+// Admin pages
 import AdminLogin from "../pages/admin/adminLogin";
 import AdminDashboard from "../pages/admin/Dashboard";
 import ProviderDetails from "../pages/admin/ProviderDetails";
-
 
 export default function AppRoutes() {
   return (
@@ -67,49 +70,59 @@ export default function AppRoutes() {
         element={<ProviderDashboard />}
       />
 
-      
-{/* Provider features */}
-<Route
-  path="/provider/availability"
-  element={<Availability />}
-/>
-<Route
-  path="/provider/booking-requests"
-  element={<BookingRequests />}
-/>
-<Route
-  path="/provider/my-jobs"
-  element={<MyJobs />}
-/>
-<Route
-  path="/provider/earnings"
-  element={<Earnings />}
-/>
-<Route
-  path="/provider/reviews"
-  element={<Reviews />}
-/>
-<Route
-  path="/provider/chat"
-  element={<ProviderChat />}
-/>
-<Route
-  path="/provider/portfolio"
-  element={<Portfolio />}
-/>
-<Route
-  path="/provider/profile"
-  element={<ProviderProfile />}
-/>
-<Route
-  path="/provider/settings"
-  element={<ProviderProfile />}
-/>
-<Route
-  path="/provider/bookings"
-  element={<ProviderBookings />}
-/>
+      {/* Provider features */}
+      <Route
+        path="/provider/availability"
+        element={<Availability />}
+      />
+      <Route
+        path="/provider/booking-requests"
+        element={<ProviderBookings />}
+      />
+      <Route
+        path="/provider/my-jobs"
+        element={<MyJobs />}
+      />
+      <Route
+        path="/provider/earnings"
+        element={<Earnings />}
+      />
+      <Route
+        path="/provider/reviews"
+        element={<Reviews />}
+      />
+      <Route
+        path="/provider/chat"
+        element={<ProviderChat />}
+      />
+      <Route
+        path="/provider/portfolio"
+        element={<Portfolio />}
+      />
+      <Route
+        path="/provider/profile"
+        element={<ProviderProfile />}
+      />
+      <Route
+        path="/provider/settings"
+        element={<ProviderProfile />}
+      />
+      <Route
+        path="/provider/bookings"
+        element={<ProviderBookings />}
+      />
 
+      {/* Provider notifications */}
+      <Route
+        path="/provider/notifications"
+        element={<ProviderNotifications />}
+      />
+
+      {/* Provider individual booking */}
+      <Route
+        path="/provider/bookings/:bookingId"
+        element={<ProviderBookingDetails />}
+      />
 
       {/* Customer dashboard */}
       <Route
@@ -130,11 +143,19 @@ export default function AppRoutes() {
         path="/customer/booking-history"
         element={<BookingHistory />}
       />
+
+      {/* Existing booking details used by Booking History */}
       <Route
         path="/customer/booking-details/:bookingId"
-        element={<BookingDetails  />}
+        element={<BookingDetails />}
       />
-      
+
+      {/* Individual booking opened from notifications */}
+      <Route
+        path="/customer/bookings/:bookingId"
+        element={<IndividualBooking />}
+      />
+
       <Route
         path="/customer/favorites"
         element={<Favorites />}
@@ -142,10 +163,6 @@ export default function AppRoutes() {
       <Route
         path="/customer/chat"
         element={<Chat />}
-      />
-      <Route
-        path="/customer/notifications"
-        element={<Notifications />}
       />
       <Route
         path="/customer/live-tracking"
@@ -160,18 +177,25 @@ export default function AppRoutes() {
         element={<Profile />}
       />
 
+      {/* Customer notifications */}
+      <Route
+        path="/customer/notifications"
+        element={<CustomerNotifications />}
+      />
 
       {/* Admin pages */}
-{/* Admin pages */}
-<Route path="/admin/login" element={<AdminLogin />} />
-<Route path="/admin/Dashboard" element={<AdminDashboard />} />
-<Route
-  path="/admin/providers/:id"
-  element={<ProviderDetails />}
-/>
-
+      <Route
+        path="/admin/login"
+        element={<AdminLogin />}
+      />
+      <Route
+        path="/admin/Dashboard"
+        element={<AdminDashboard />}
+      />
+      <Route
+        path="/admin/providers/:id"
+        element={<ProviderDetails />}
+      />
     </Routes>
-
-    
   );
 }

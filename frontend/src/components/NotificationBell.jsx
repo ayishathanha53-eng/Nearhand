@@ -3,9 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, CheckCheck, Clock, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
+
 const API_URL = "http://localhost:5000";
 
-export default function NotificationBell() {
+export default function NotificationBell({ role = "customer" }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -41,7 +42,9 @@ export default function NotificationBell() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Unable to load notifications.");
+        throw new Error(
+          data.message || "Unable to load notifications."
+        );
       }
 
       setNotifications(data.notifications || []);
@@ -90,7 +93,9 @@ export default function NotificationBell() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Unable to mark as read.");
+        throw new Error(
+          data.message || "Unable to mark as read."
+        );
       }
 
       setNotifications((previous) =>
@@ -125,7 +130,9 @@ export default function NotificationBell() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Unable to mark notifications as read.");
+        throw new Error(
+          data.message || "Unable to mark notifications as read."
+        );
       }
 
       setNotifications((previous) =>
@@ -146,7 +153,20 @@ export default function NotificationBell() {
     setOpen(false);
 
     if (notification.booking?._id) {
-      navigate("/customer/booking-history");
+      if (role === "provider") {
+        // Provider bell -> Provider booking requests page
+        navigate("/provider/booking-requests");
+      } else {
+        // Customer bell -> Customer booking history
+        navigate("/customer/booking-history");
+      }
+    } else {
+      // Notifications without a booking open the relevant notifications page
+      if (role === "provider") {
+        navigate("/provider/notifications");
+      } else {
+        navigate("/customer/notifications");
+      }
     }
   };
 
@@ -155,7 +175,9 @@ export default function NotificationBell() {
       <button
         type="button"
         className="nh-notification-trigger"
-        aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
+        aria-label={`Notifications${
+          unreadCount ? `, ${unreadCount} unread` : ""
+        }`}
         aria-expanded={open}
         onClick={() => {
           const nextOpen = !open;
@@ -167,6 +189,7 @@ export default function NotificationBell() {
         }}
       >
         <Bell size={21} />
+
         {unreadCount > 0 && (
           <span className="nh-notification-badge">
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -208,7 +231,9 @@ export default function NotificationBell() {
           )}
 
           {loading && notifications.length === 0 ? (
-            <p className="nh-notification-empty">Loading notifications...</p>
+            <p className="nh-notification-empty">
+              Loading notifications...
+            </p>
           ) : notifications.length === 0 ? (
             <div className="nh-notification-empty">
               <Bell size={25} />
@@ -233,7 +258,9 @@ export default function NotificationBell() {
                     <strong>{notification.title}</strong>
                     <span>{notification.message}</span>
                     <small>
-                      {new Date(notification.createdAt).toLocaleString()}
+                      {new Date(
+                        notification.createdAt
+                      ).toLocaleString()}
                     </small>
                   </span>
 

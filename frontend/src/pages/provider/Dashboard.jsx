@@ -148,8 +148,7 @@ export default function Dashboard() {
   <Clock size={19} />
   Availability
 </button>
-
- <button
+<button
   className="provider-nav"
   onClick={() => {
     setSidebarOpen(false);
@@ -160,6 +159,14 @@ export default function Dashboard() {
   Booking Requests
 </button>
 
+
+<button
+  className="provider-nav"
+  onClick={() => navigate("/provider/notifications")}
+>
+  <Bell size={19} />
+  Notifications
+</button>
 <button
   className="provider-nav"
   onClick={() => navigate("/provider/my-jobs")}
@@ -259,7 +266,7 @@ export default function Dashboard() {
         </div>
 
         <div className="provider-header-right">
-          <NotificationBell />
+          <NotificationBell role="provider" />
 
           <div className="provider-status">
             <span

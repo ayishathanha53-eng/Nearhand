@@ -1,0 +1,130 @@
+
+.booking-detail-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+  color: #173b30;
+  font-family: Arial, sans-serif;
+}
+
+.booking-detail-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 48px;
+}
+
+.booking-detail-back,
+.booking-detail-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border: 1px solid #d6e8dc;
+  border-radius: 14px;
+  background: #fff;
+  color: #087d4b;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.booking-detail-back:hover,
+.booking-detail-refresh:hover {
+  background: #eff8f2;
+}
+
+.booking-detail-page h1 {
+  margin-bottom: 8px;
+  font-size: 36px;
+}
+
+.booking-detail-subtitle {
+  margin-bottom: 28px;
+  color: #718078;
+  font-size: 17px;
+}
+
+.booking-detail-card {
+  padding: 28px;
+  border: 1px solid #dce9e0;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgb(20 60 40 / 4%);
+}
+
+.booking-detail-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.booking-detail-card-header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.booking-detail-status {
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #eaf6ee;
+  color: #087d4b;
+  font-weight: 600;
+}
+
+.booking-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 24px;
+  color: #087d4b;
+}
+
+.booking-detail-row strong,
+.booking-detail-field strong {
+  color: #173b30;
+}
+
+.booking-detail-row p,
+.booking-detail-field p {
+  margin: 7px 0 0;
+  color: #718078;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.booking-detail-field {
+  margin: 22px 0;
+}
+
+.booking-detail-error {
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff0f0;
+  color: #b42318;
+}
+
+@media (max-width: 600px) {
+  .booking-detail-page {
+    padding: 18px;
+  }
+
+  .booking-detail-topbar {
+    margin-bottom: 30px;
+  }
+
+  .booking-detail-page h1 {
+    font-size: 29px;
+  }
+
+  .booking-detail-card {
+    padding: 20px;
+  }
+
+  .booking-detail-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
