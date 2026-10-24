@@ -9,6 +9,8 @@ import {
   Phone,
   Menu,
   X,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./Auth.css";
@@ -19,6 +21,12 @@ export default function Login() {
   const [role, setRole] = useState("customer");
   const [showPassword, setShowPassword] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [dialog, setDialog] = useState({
+  isOpen: false,
+  type: "success",
+  title: "",
+  message: "",
+});
 
   const [formData, setFormData] = useState({
     email: "",
@@ -26,57 +34,84 @@ export default function Login() {
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const { name, value } = e.target;
 
-  const handleLogin = async (e) => {
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
+
+const handleLogin = async (e) => {
   e.preventDefault();
 
   try {
-    const response = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-        role: role,
-      }),
-    });
+    const response = await fetch(
+      "http://localhost:5000/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          role: role,
+        }),
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
-      alert(data.message || "Login failed");
+      setDialog({
+        isOpen: true,
+        type: "error",
+        title: "Login Failed",
+        message: data.message || "Please check your email and password and try again.",
+      });
       return;
     }
 
-    // Save JWT token
+    // Save login information
     localStorage.setItem("token", data.token);
-
-    // Save logged-in user information
     localStorage.setItem("user", JSON.stringify(data.user));
 
-    alert("Login successful!");
+    setDialog({
+      isOpen: true,
+      type: "success",
+      title: "Login Successful!",
+      message: `Welcome back, ${data.user.fullName || data.user.name || "to NearHand"}!`,
+    });
 
-    // Navigate according to role
-    if (data.user.role === "customer") {
-      navigate("/customer/dashboard");
-    } else {
-      navigate("/provider/dashboard");
-    }
   } catch (error) {
     console.error("Login error:", error);
 
-    alert(
-      "Unable to connect to the server. Please make sure the backend is running."
-    );
+    setDialog({
+      isOpen: true,
+      type: "error",
+      title: "Connection Error",
+      message: "Unable to connect to the server. Please make sure the backend is running and try again.",
+    });
+  }
+};
+
+const handleDialogContinue = () => {
+  const isSuccess = dialog.type === "success";
+
+  setDialog((previous) => ({
+    ...previous,
+    isOpen: false,
+  }));
+
+  if (isSuccess) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    if (user.role === "customer") {
+      navigate("/customer/dashboard");
+    } else if (user.role === "provider") {
+      navigate("/provider/dashboard");
+    }
   }
 };
 
@@ -265,6 +300,79 @@ export default function Login() {
         </p>
 
       </div>
+
+      {dialog.isOpen && (
+  <div
+    className="provider-success-overlay"
+    onClick={() =>
+      setDialog((previous) => ({
+        ...previous,
+        isOpen: false,
+      }))
+    }
+  >
+    <div
+      className="provider-success-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="login-dialog-title"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="provider-success-close"
+        aria-label="Close dialog"
+        onClick={() =>
+          setDialog((previous) => ({
+            ...previous,
+            isOpen: false,
+          }))
+        }
+      >
+        <X size={20} />
+      </button>
+
+      <div
+        className={`provider-success-icon ${
+          dialog.type === "error" ? "login-error-icon" : ""
+        }`}
+      >
+        {dialog.type === "success" ? (
+          <Check size={38} strokeWidth={2.5} />
+        ) : (
+          <AlertCircle size={38} strokeWidth={2.2} />
+        )}
+      </div>
+
+      <h2 id="login-dialog-title">{dialog.title}</h2>
+
+      <p>{dialog.message}</p>
+
+      {dialog.type === "success" ? (
+        <button
+          type="button"
+          className="provider-login-btn"
+          onClick={handleDialogContinue}
+        >
+          Continue to Dashboard
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="provider-login-btn"
+          onClick={() =>
+            setDialog((previous) => ({
+              ...previous,
+              isOpen: false,
+            }))
+          }
+        >
+          Try Again
+        </button>
+      )}
+    </div>
+  </div>
+)}
 
       {/* Background decoration */}
       <div className="auth-decoration decoration-one"></div>

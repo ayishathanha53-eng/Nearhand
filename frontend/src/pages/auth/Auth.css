@@ -1361,3 +1361,160 @@
     padding: 35px 20px 25px;
   }
 }
+
+
+
+
+
+/* Login success and error modal */
+
+.provider-success-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(15, 28, 19, 0.48);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.provider-success-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 390px;
+
+  padding: 34px 28px 28px;
+
+  text-align: center;
+
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e6eee7;
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+
+  animation: loginModalAppear 0.22s ease-out;
+}
+
+.provider-success-close {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+  color: #647067;
+
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.provider-success-close:hover {
+  background: #f1f4f1;
+}
+
+.provider-success-icon {
+  width: 82px;
+  height: 82px;
+
+  margin: 2px auto 19px;
+
+  border-radius: 50%;
+
+  background: #e6f5e9;
+  color: #087332;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.provider-success-modal h2 {
+  margin: 0 0 11px;
+
+  color: #17251c;
+
+  font-size: 21px;
+  line-height: 1.3;
+}
+
+.provider-success-modal > p {
+  margin: 0 auto 24px;
+
+  max-width: 300px;
+
+  color: #777;
+
+  font-size: 13px;
+  line-height: 1.7;
+
+  overflow-wrap: anywhere;
+}
+
+.provider-login-btn {
+  width: 100%;
+  min-height: 45px;
+
+  padding: 12px 16px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #075c2c;
+  color: white;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.provider-login-btn:hover {
+  background: #064c25;
+}
+
+.login-error-icon {
+  background: #fdeaea;
+  color: #c62828;
+}
+
+@keyframes loginModalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .provider-success-modal {
+    max-width: 360px;
+    padding: 32px 22px 24px;
+  }
+
+  .provider-success-icon {
+    width: 72px;
+    height: 72px;
+  }
+}

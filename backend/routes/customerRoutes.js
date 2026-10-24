@@ -8,6 +8,8 @@ const Notification = require("../models/Notification");
 const Booking = require("../models/Booking");
 const Provider = require("../models/provider");
 const authMiddleware = require("../middleware/authMiddleware");
+const User = require("../models/user");
+
 
 // Shared eligibility rules for customer visibility and booking creation.
 const LIVE_PROVIDER_FILTER = {
@@ -386,4 +388,147 @@ router.get("/bookings/:bookingId", authMiddleware, async (req, res) => {
     });
   }
 });
+
+
+
+// GET /api/customer/profile
+router.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Customer account required.",
+      });
+    }
+
+    const user = await User.findById(req.user.id)
+      .select("fullName email role createdAt");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("Customer profile error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load customer profile.",
+    });
+  }
+});
+
+
+
+/* UPDATE CUSTOMER PROFILE */
+router.patch("/profile", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Customer account required.",
+      });
+    }
+
+    const { fullName, email } = req.body;
+
+    // Validate input
+    if (
+      typeof fullName !== "string" ||
+      typeof email !== "string" ||
+      !fullName.trim() ||
+      !email.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Full name and email are required.",
+      });
+    }
+
+    const cleanedName = fullName.trim();
+    const cleanedEmail = email.trim().toLowerCase();
+
+    if (cleanedName.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Full name cannot exceed 100 characters.",
+      });
+    }
+
+    // Basic email format validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(cleanedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address.",
+      });
+    }
+
+    // Find the logged-in customer
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found.",
+      });
+    }
+
+    // Check whether another account already uses this email
+    const existingUser = await User.findOne({
+      email: cleanedEmail,
+      _id: { $ne: user._id },
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "This email address is already registered.",
+      });
+    }
+
+    // Update only the permitted fields
+    user.fullName = cleanedName;
+    user.email = cleanedEmail;
+
+    await user.save();
+
+    // Never return the password
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Update customer profile error:", error);
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "This email address is already registered.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to update your profile.",
+    });
+  }
+});
+
+
+
 module.exports = router;

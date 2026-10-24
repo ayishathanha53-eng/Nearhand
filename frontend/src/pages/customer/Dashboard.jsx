@@ -31,6 +31,14 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const [data, setData] = useState(null);
+  const [user, setUser] = useState(() => {
+  try {
+    return JSON.parse(localStorage.getItem("user")) || null;
+  } catch {
+    return null;
+  }
+});
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -215,7 +223,7 @@ export default function Dashboard() {
             aria-label="Open my profile"
             title="My Profile"
           >
-            C
+            {user?.fullName?.trim()?.charAt(0).toUpperCase() || "C"}
           </button>
         </div>
       </header>
