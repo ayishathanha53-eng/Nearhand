@@ -9,6 +9,7 @@ const complaintRoutes = require("./routes/complaintroutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
+require("dotenv").config();
 dotenv.config();
 
 
