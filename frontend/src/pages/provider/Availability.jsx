@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Save,
   LoaderCircle,
+  MapPin,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./Availability.css";
@@ -43,6 +44,9 @@ export default function Availability() {
   const [activating, setActivating] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
+   const [servicePincodes, setServicePincodes] = useState([]);
+const [newPincode, setNewPincode] = useState("");
 
   const [form, setForm] = useState({
     serviceDescription: "",
@@ -80,6 +84,10 @@ export default function Availability() {
         const p = data.provider || data.result?.provider || data;
         setProvider(p);
 
+        setServicePincodes(
+  Array.isArray(p.servicePincodes) ? p.servicePincodes : []
+);
+
         setForm({
           serviceDescription: p.serviceDescription || "",
           skills: Array.isArray(p.skills) ? p.skills.join(", ") : "",
@@ -93,7 +101,6 @@ export default function Availability() {
           appointmentDuration: p.appointmentDuration ?? 60,
           bufferMinutes: p.bufferMinutes ?? 15,
           minimumBookingNoticeHours: p.minimumBookingNoticeHours ?? 2,
-          serviceRadiusKm: p.serviceRadiusKm ?? 10,
           workingHours: DAYS.map((day) => {
             const saved = p.workingHours?.find((item) => item.day === day);
             return saved || {
@@ -119,6 +126,28 @@ export default function Availability() {
   const updateField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
+
+  const addServicePincode = () => {
+  const pincode = newPincode.trim();
+
+  if (!/^\d{6}$/.test(pincode)) {
+    setError("Enter a valid six-digit PIN code.");
+    return;
+  }
+
+  if (servicePincodes.includes(pincode)) {
+    setError("This PIN code has already been added.");
+    return;
+  }
+
+  setServicePincodes((prev) => [...prev, pincode]);
+  setNewPincode("");
+  setError("");
+};
+
+const removeServicePincode = (pincode) => {
+  setServicePincodes((prev) => prev.filter((pin) => pin !== pincode));
+};
 
   const updateDay = (index, key, value) => {
     setForm((prev) => ({
@@ -158,6 +187,11 @@ export default function Availability() {
       return;
     }
 
+    if (servicePincodes.length === 0) {
+  setError("Please add at least one service-area PIN code.");
+  return;
+}
+
     if (!form.workingHours.some((day) => day.isWorking)) {
       setError("Select at least one working day.");
       return;
@@ -195,7 +229,8 @@ export default function Availability() {
       appointmentDuration: Number(form.appointmentDuration),
       bufferMinutes: Number(form.bufferMinutes),
       minimumBookingNoticeHours: Number(form.minimumBookingNoticeHours),
-      serviceRadiusKm: Number(form.serviceRadiusKm),
+      servicePincodes,
+
       workingHours: form.workingHours.map((day) => ({
         ...day,
         breakStart: day.breakStart || undefined,
@@ -418,16 +453,7 @@ export default function Availability() {
               </div>
             </label>
 
-            <label className="availability-field">
-              Service radius (km)
-              <input
-                type="number"
-                min="1"
-                max="200"
-                value={form.serviceRadiusKm}
-                onChange={(e) => updateField("serviceRadiusKm", e.target.value)}
-              />
-            </label>
+           
           </div>
         </section>
 
@@ -435,6 +461,84 @@ export default function Availability() {
           <div className="availability-card-heading">
             <div className="section-icon"><Clock3 size={21} /></div>
             <div>
+
+             <section className="availability-card booking-preferences-card">
+  <div className="availability-card-heading">
+    <div className="section-icon">
+      <MapPin size={21} />
+    </div>
+    <div>
+      <h2>Service locations</h2>
+      <p>
+        Add the PIN codes of all localities where you accept bookings.
+      </p>
+    </div>
+  </div>
+
+  <div className="availability-form-grid">
+    <div className="availability-field full-width">
+      <label htmlFor="servicePincode">
+        Locality PIN code
+      </label>
+
+      <div className="availability-input-icon">
+        <input
+          id="servicePincode"
+          type="text"
+          inputMode="numeric"
+          maxLength={6}
+          value={newPincode}
+          onChange={(e) =>
+            setNewPincode(e.target.value.replace(/\D/g, ""))
+          }
+          placeholder="Enter six-digit PIN code"
+        />
+
+        <button
+  type="button"
+  className="service-pincode-add-button"
+  onClick={addServicePincode}
+  disabled={!newPincode}
+>
+  Add location
+</button>
+      </div>
+
+      <small>
+        Add each locality separately. Duplicate PIN codes are not allowed.
+      </small>
+    </div>
+
+    <div className="full-width">
+      <strong>Locations you serve ({servicePincodes.length})</strong>
+
+      {servicePincodes.length === 0 ? (
+        <p>
+          No service locations added yet. Add at least one PIN code.
+        </p>
+      ) : (
+        <div className="service-pincode-list">
+          {servicePincodes.map((pincode) => (
+            <div className="service-pincode-item" key={pincode}>
+              <span>
+                <MapPin size={16} />
+                {pincode}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => removeServicePincode(pincode)}
+                aria-label={`Remove PIN code ${pincode}`}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</section>
               <h2>Booking preferences</h2>
               <p>Set the time needed for each appointment.</p>
             </div>
@@ -526,22 +630,7 @@ export default function Availability() {
                         onChange={(e) => updateDay(index, "endTime", e.target.value)}
                       />
                     </label>
-                    <label>
-                      <span>Break starts</span>
-                      <input
-                        type="time"
-                        value={day.breakStart || ""}
-                        onChange={(e) => updateDay(index, "breakStart", e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      <span>Break ends</span>
-                      <input
-                        type="time"
-                        value={day.breakEnd || ""}
-                        onChange={(e) => updateDay(index, "breakEnd", e.target.value)}
-                      />
-                    </label>
+                    
                   </div>
                 ) : (
                   <span className="day-off-label">Day off</span>

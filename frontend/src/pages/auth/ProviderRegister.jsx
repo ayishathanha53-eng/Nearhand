@@ -17,6 +17,25 @@ import {
 import { useNavigate } from "react-router-dom";
 import "./Auth.css";
 import { apiRequest } from "../../services/api";
+
+
+const KERALA_DISTRICTS = [
+  "Alappuzha",
+  "Ernakulam",
+  "Idukki",
+  "Kannur",
+  "Kasaragod",
+  "Kollam",
+  "Kottayam",
+  "Kozhikode",
+  "Malappuram",
+  "Palakkad",
+  "Pathanamthitta",
+  "Thiruvananthapuram",
+  "Thrissur",
+  "Wayanad",
+];
+
 export default function ProviderRegister() {
   const navigate = useNavigate();
 
@@ -31,9 +50,10 @@ export default function ProviderRegister() {
     dateOfBirth: "",
 
     address: "",
-    city: "",
-    state: "",
-    pincode: "",
+city: "",
+state: "Kerala",
+district: "",
+pincode: "",
 
     serviceCategory: "",
     serviceType: "",
@@ -103,8 +123,9 @@ const handleSubmit = async (e) => {
 
     // Address information
     data.append("address", formData.address.trim());
-    data.append("city", formData.city.trim());
-    data.append("state", formData.state.trim());
+    data.append("city", formData.district);
+    data.append("district", formData.district);
+    data.append("state", formData.state);
     data.append("pincode", formData.pincode.trim());
 
     // Qualification information
@@ -266,6 +287,10 @@ const handleSubmit = async (e) => {
     if (!formData.state.trim()) {
       newErrors.state = "State is required";
     }
+
+    if (!formData.district) {
+  newErrors.district = "Please select your district";
+}
 
     if (!formData.pincode.trim()) {
       newErrors.pincode = "PIN code is required";
@@ -783,48 +808,64 @@ const handleSubmit = async (e) => {
               </div>
 
               {/* City */}
-              <div className="provider-form-group">
+             
+{/* State */}
+<div className="provider-form-group">
+  <label>State *</label>
 
-                <label>City *</label>
+  <select
+    className="provider-normal-input"
+    name="state"
+    value={formData.state}
+    disabled
+    onChange={handleChange}
+  >
+    <option value="Kerala">Kerala</option>
+  </select>
+</div>
 
-                <input
-                  className="provider-normal-input"
-                  type="text"
-                  name="city"
-                  placeholder="Enter city"
-                  value={formData.city}
-                  onChange={handleChange}
-                />
+{/* District */}
+<div className="provider-form-group">
+  <label>District *</label>
 
-                {errors.city && (
-                  <p className="error-message">
-                    {errors.city}
-                  </p>
-                )}
+  <select
+    className="provider-normal-input"
+    name="district"
+    value={formData.district}
+    onChange={(e) => {
+      const district = e.target.value;
 
-              </div>
+      setFormData((prev) => ({
+        ...prev,
+        district,
+        city: district,
+        pincode: "",
+      }));
 
-              {/* State */}
-              <div className="provider-form-group">
+      setErrors((prev) => ({
+        ...prev,
+        district: "",
+        pincode: "",
+      }));
+    }}
+  >
+    <option value="">Select district</option>
 
-                <label>State *</label>
+    {KERALA_DISTRICTS.map((district) => (
+      <option key={district} value={district}>
+        {district}
+      </option>
+    ))}
+  </select>
 
-                <input
-                  className="provider-normal-input"
-                  type="text"
-                  name="state"
-                  placeholder="Enter state"
-                  value={formData.state}
-                  onChange={handleChange}
-                />
+  {errors.district && (
+    <p className="error-message">{errors.district}</p>
+  )}
 
-                {errors.state && (
-                  <p className="error-message">
-                    {errors.state}
-                  </p>
-                )}
 
-              </div>
+  
+</div>
+ 
 
               {/* PIN */}
               <div className="provider-form-group">

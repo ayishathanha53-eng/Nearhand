@@ -52,17 +52,23 @@ const providerSchema = new mongoose.Schema(
       trim: true,
     },
     phone: { type: String, required: true, trim: true },
+    password: { type: String, required: true },
     dateOfBirth: { type: Date, required: true },
     gender: {
       type: String,
       required: true,
       enum: ["Male", "Female", "Other"],
     },
-    address: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    pincode: { type: String, required: true },
-    password: { type: String, required: true },
+address: { type: String, required: true },
+city: { type: String, required: true },
+state: { type: String, required: true },
+district: { type: String, required: true, trim: true },
+pincode: {
+  type: String,
+  required: true,
+  trim: true,
+  match: /^[0-9]{6}$/,
+},
 
     // QUALIFICATION AND EXPERIENCE
     highestQualification: { type: String, required: true },
@@ -71,6 +77,15 @@ const providerSchema = new mongoose.Schema(
     serviceCategory: { type: String, required: true },
     experience: { type: String, required: true },
     serviceArea: { type: String, required: true },
+    servicePincodes: {
+  type: [String],
+  default: [],
+  validate: {
+    validator: (codes) =>
+      codes.every((code) => /^[0-9]{6}$/.test(code)),
+    message: "Every service PIN code must contain exactly 6 digits.",
+  },
+},
     about: { type: String, required: true },
 
     // DOCUMENTS
