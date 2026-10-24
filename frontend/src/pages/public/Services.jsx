@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { apiRequest } from "../../services/api";
 import {
   Zap,
   Droplets,
@@ -12,58 +13,27 @@ import {
 
 import ServiceCard from "../../components/ServiceCard";
 
-const services = [
-  {
-    name: "Electricians",
-    count: "245 Professionals",
-    icon: Zap,
-    color: "yellow",
-  },
-  {
-    name: "Plumbers",
-    count: "192 Professionals",
-    icon: Droplets,
-    color: "blue",
-  },
-  {
-    name: "Carpenters",
-    count: "156 Professionals",
-    icon: Hammer,
-    color: "orange",
-  },
-  {
-    name: "Tutors",
-    count: "320 Professionals",
-    icon: GraduationCap,
-    color: "green",
-  },
-  {
-    name: "Cleaners",
-    count: "180 Professionals",
-    icon: Brush,
-    color: "purple",
-  },
-  {
-    name: "AC Repair",
-    count: "98 Professionals",
-    icon: Wrench,
-    color: "blue",
-  },
-  {
-    name: "Mechanics",
-    count: "134 Professionals",
-    icon: Car,
-    color: "red",
-  },
-  {
-    name: "Painters",
-    count: "117 Professionals",
-    icon: PaintRoller,
-    color: "teal",
-  },
-];
+
 
 function Services() {
+
+  const [services, setServices] = useState([]);
+const [servicesLoading, setServicesLoading] = useState(true);
+
+useEffect(() => {
+  const loadServices = async () => {
+    try {
+      const response = await apiRequest("/api/providers/services/public");
+      setServices(response.services || []);
+    } catch (error) {
+      console.error("Failed to load services:", error);
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
+  loadServices();
+}, []);
   return (
     <div className="inner-page">
 
@@ -93,17 +63,33 @@ function Services() {
           </p>
         </div>
 
-        <div className="services-grid">
-          {services.map((service) => (
-            <ServiceCard
-              key={service.name}
-              name={service.name}
-              count={service.count}
-              icon={service.icon}
-              color={service.color}
-            />
-          ))}
-        </div>
+       
+<div className="services-grid">
+  {servicesLoading ? (
+    <p>Loading services...</p>
+  ) : (
+    services.map((service) => (
+      <ServiceCard
+        key={service.name}
+        name={service.name}
+        count={`${service.count} Professionals`}
+        icon={
+          {
+            Electricians: Zap,
+            Plumbers: Droplets,
+            Carpenters: Hammer,
+            Cleaners: Brush,
+            "AC Repair": Wrench,
+            Mechanics: Car,
+            Painters: PaintRoller,
+          }[service.name] || Wrench
+        }
+        color="green"
+      />
+    ))
+  )}
+</div>
+
 
       </section>
     </div>

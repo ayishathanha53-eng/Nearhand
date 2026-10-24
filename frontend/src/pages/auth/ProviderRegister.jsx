@@ -891,45 +891,19 @@ const handleSubmit = async (e) => {
                   onChange={handleChange}
                 >
 
-                  <option value="">
-                    Select category
-                  </option>
-
-                  <option value="electrician">
-                    Electrician
-                  </option>
-
-                  <option value="plumber">
-                    Plumber
-                  </option>
-
-                  <option value="carpenter">
-                    Carpenter
-                  </option>
-
-                  <option value="tutor">
-                    Tutor
-                  </option>
-
-                  <option value="cleaner">
-                    Cleaner
-                  </option>
-
-                  <option value="ac-repair">
-                    AC Repair
-                  </option>
-
-                  <option value="mechanic">
-                    Mechanic
-                  </option>
-
-                  <option value="painter">
-                    Painter
-                  </option>
-
-                  <option value="other">
-                    Other
-                  </option>
+                 <option value="">Select category</option>
+<option value="Electricians">Electricians</option>
+<option value="Plumbers">Plumbers</option>
+<option value="Carpenters">Carpenters</option>
+<option value="Cleaners">Cleaners</option>
+<option value="AC Repair">AC Repair</option>
+<option value="Mechanics">Mechanics</option>
+<option value="Painters">Painters</option>
+<option value="Appliance Repair">Appliance Repair</option>
+<option value="Pest Control">Pest Control</option>
+<option value="Gardening">Gardening</option>
+<option value="Home Cleaning">Home Cleaning</option>
+<option value="Computer Repair">Computer Repair</option>
 
                 </select>
 

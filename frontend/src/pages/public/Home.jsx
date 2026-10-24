@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { apiRequest } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -129,6 +130,23 @@ const stats = [
 
 function Home() {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+const [servicesLoading, setServicesLoading] = useState(true);
+
+useEffect(() => {
+  const loadServices = async () => {
+    try {
+      const response = await apiRequest("/api/providers/services/public");
+      setCategories(response.services || []);
+    } catch (error) {
+      console.error("Failed to load services:", error);
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
+  loadServices();
+}, []);
 
   return (
     <div className="nearhand-home">
@@ -177,15 +195,29 @@ function Home() {
         </div>
 
         <div className="categories-grid">
-          {categories.map((category) => (
-            <ServiceCard
-              key={category.name}
-              name={category.name}
-              count={category.count}
-              icon={category.icon}
-              color={category.color}
-            />
-          ))}
+          {servicesLoading ? (
+  <p>Loading services...</p>
+) : (
+  categories.slice(0, 8).map((category) => (
+    <ServiceCard
+      key={category.name}
+      name={category.name}
+      count={`${category.count} Professionals`}
+      icon={
+        {
+          Electricians: Zap,
+          Plumbers: Droplets,
+          Carpenters: Hammer,
+          Cleaners: Brush,
+          "AC Repair": Wrench,
+          Mechanics: Car,
+          Painters: PaintRoller,
+        }[category.name] || Wrench
+      }
+      color="green"
+    />
+  ))
+)}
         </div>
       </section>
 

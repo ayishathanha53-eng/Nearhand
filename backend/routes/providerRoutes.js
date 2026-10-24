@@ -10,6 +10,7 @@ const router = express.Router();
 const ManualEarning = require("../models/ManualEarning");
 const Notification = require("../models/Notification");
 
+
 const mongoose = require("mongoose");
 // ===============================
 // CREATE UPLOAD FOLDERS
@@ -1431,5 +1432,191 @@ router.patch(
     }
   }
 );
+
+
+/* ==========================================
+   PUBLIC SERVICE CATEGORIES WITH LIVE COUNTS
+========================================== */
+
+const SERVICE_CATEGORIES = [
+  "Electricians",
+  "Plumbers",
+  "Carpenters",
+  "Cleaners",
+  "AC Repair",
+  "Mechanics",
+  "Painters",
+  "Appliance Repair",
+  "Pest Control",
+  "Gardening",
+  "Home Cleaning",
+  "Computer Repair",
+];
+
+router.get("/services/public", async (req, res) => {
+  try {
+    // Count providers who are currently visible to customers.
+    const counts = await Provider.aggregate([
+      {
+        $match: {
+          verificationStatus: "Approved",
+          profileCompleted: true,
+          acceptingBookings: true,
+          isAvailableForCustomers: true,
+        },
+      },
+      
+{
+  $project: {
+    categoryKey: {
+      $switch: {
+        branches: [
+          {
+            case: {
+              $in: [
+                {
+                  $toLower: {
+                    $trim: { input: "$serviceCategory" },
+                  },
+                },
+                ["electrician", "electricians"],
+              ],
+            },
+            then: "electricians",
+          },
+          {
+            case: {
+              $in: [
+                {
+                  $toLower: {
+                    $trim: { input: "$serviceCategory" },
+                  },
+                },
+                ["plumber", "plumbers"],
+              ],
+            },
+            then: "plumbers",
+          },
+          {
+            case: {
+              $in: [
+                {
+                  $toLower: {
+                    $trim: { input: "$serviceCategory" },
+                  },
+                },
+                ["carpenter", "carpenters"],
+              ],
+            },
+            then: "carpenters",
+          },
+          {
+            case: {
+              $in: [
+                {
+                  $toLower: {
+                    $trim: { input: "$serviceCategory" },
+                  },
+                },
+                ["cleaner", "cleaners", "home cleaning"],
+              ],
+            },
+            then: {
+              $cond: [
+                {
+                  $eq: [
+                    {
+                      $toLower: {
+                        $trim: { input: "$serviceCategory" },
+                      },
+                    },
+                    "home cleaning",
+                  ],
+                },
+                "home cleaning",
+                "cleaners",
+              ],
+            },
+          },
+          {
+            case: {
+              $in: [
+                {
+                  $toLower: {
+                    $trim: { input: "$serviceCategory" },
+                  },
+                },
+                ["ac-repair", "ac repair"],
+              ],
+            },
+            then: "ac repair",
+          },
+          {
+            case: {
+              $in: [
+                {
+                  $toLower: {
+                    $trim: { input: "$serviceCategory" },
+                  },
+                },
+                ["mechanic", "mechanics"],
+              ],
+            },
+            then: "mechanics",
+          },
+          {
+            case: {
+              $in: [
+                {
+                  $toLower: {
+                    $trim: { input: "$serviceCategory" },
+                  },
+                },
+                ["painter", "painters"],
+              ],
+            },
+            then: "painters",
+          },
+        ],
+        default: {
+          $toLower: {
+            $trim: { input: "$serviceCategory" },
+          },
+        },
+      },
+    },
+  },
+},
+{
+  $group: {
+    _id: "$categoryKey",
+    count: { $sum: 1 },
+  },
+},
+]);
+
+    const countMap = new Map(
+      counts.map((item) => [item._id, item.count])
+    );
+
+    const services = SERVICE_CATEGORIES.map((name) => ({
+      name,
+      count: countMap.get(name.toLowerCase()) || 0,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      services,
+    });
+  } catch (error) {
+    console.error("Public services error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load services.",
+    });
+  }
+});
+
 
 module.exports = router;
