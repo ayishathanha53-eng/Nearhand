@@ -84,8 +84,18 @@ const [newPincode, setNewPincode] = useState("");
         const p = data.provider || data.result?.provider || data;
         setProvider(p);
 
-        setServicePincodes(
-  Array.isArray(p.servicePincodes) ? p.servicePincodes : []
+        console.log("Loaded provider data:", p);
+console.log("Saved PIN codes:", p.servicePincodes);
+console.log("Saved working hours:", p.workingHours);
+
+const savedPincodes = p.servicePincodes;
+
+setServicePincodes(
+  Array.isArray(savedPincodes)
+    ? savedPincodes.map((pin) => String(pin))
+    : typeof savedPincodes === "string" && savedPincodes.trim()
+      ? savedPincodes.split(",").map((pin) => pin.trim()).filter(Boolean)
+      : []
 );
 
         setForm({
@@ -459,7 +469,7 @@ const removeServicePincode = (pincode) => {
 
         <section className="availability-card">
           <div className="availability-card-heading">
-            <div className="section-icon"><Clock3 size={21} /></div>
+  
             <div>
 
              <section className="availability-card booking-preferences-card">
@@ -540,33 +550,14 @@ const removeServicePincode = (pincode) => {
   </div>
 </section>
               <h2>Booking preferences</h2>
-              <p>Set the time needed for each appointment.</p>
+              <p>Minimum hours before booking.</p>
             </div>
           </div>
 
           <div className="availability-form-grid four-columns">
-            <label className="availability-field">
-              Appointment (minutes)
-              <input
-                type="number"
-                min="15"
-                max="480"
-                step="15"
-                value={form.appointmentDuration}
-                onChange={(e) => updateField("appointmentDuration", e.target.value)}
-              />
-            </label>
+            
 
-            <label className="availability-field">
-              Buffer (minutes)
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={form.bufferMinutes}
-                onChange={(e) => updateField("bufferMinutes", e.target.value)}
-              />
-            </label>
+            
 
             <label className="availability-field">
               Booking notice (hours)

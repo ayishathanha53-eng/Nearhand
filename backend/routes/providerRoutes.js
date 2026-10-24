@@ -359,6 +359,189 @@ if (state !== "Kerala") {
   }
 );
 
+
+/* ==========================================
+   GET LOGGED-IN PROVIDER PROFILE
+========================================== */
+
+router.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Provider access required.",
+      });
+    }
+
+    const provider = await Provider.findById(req.user.id)
+      .select("-password")
+      .lean();
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider profile not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      provider: {
+        id: provider._id,
+        fullName: provider.fullName,
+        email: provider.email,
+        phone: provider.phone,
+        dateOfBirth: provider.dateOfBirth,
+        gender: provider.gender,
+        address: provider.address,
+        city: provider.city,
+        district: provider.district,
+        state: provider.state,
+        pincode: provider.pincode,
+
+        profilePhoto: provider.profilePhoto || "",
+        verificationStatus: provider.verificationStatus,
+        rejectionReason: provider.rejectionReason || "",
+
+        highestQualification: provider.highestQualification,
+        institution: provider.institution,
+        graduationYear: provider.graduationYear,
+        serviceCategory: provider.serviceCategory,
+        experience: provider.experience,
+        serviceArea: provider.serviceArea,
+        about: provider.about,
+
+        serviceDescription: provider.serviceDescription || "",
+        skills: provider.skills || [],
+        languages: provider.languages || [],
+        servicePincodes: provider.servicePincodes || [],
+        minimumBookingNoticeHours:
+  provider.minimumBookingNoticeHours ?? 2,
+        workingHours: provider.workingHours || [],
+        startingPrice: provider.startingPrice ?? null,
+      },
+    });
+  } catch (error) {
+    console.error("Provider profile fetch error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load provider profile.",
+    });
+  }
+});
+
+
+/* ==========================================
+   UPLOAD PROVIDER PROFILE PICTURE
+========================================== */
+
+router.patch(
+  "/profile/photo",
+  authMiddleware,
+  (req, res, next) => {
+    upload.single("profilePhoto")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          message: err.message || "Image upload failed.",
+        });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      if (req.user.role !== "provider") {
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
+
+        return res.status(403).json({
+          success: false,
+          message: "Provider access required.",
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Please select a profile picture.",
+        });
+      }
+
+      // Only allow JPG, JPEG and PNG profile pictures.
+      if (!["image/jpeg", "image/png"].includes(req.file.mimetype)) {
+        fs.unlinkSync(req.file.path);
+
+        return res.status(400).json({
+          success: false,
+          message: "Please upload a JPG or PNG image.",
+        });
+      }
+
+      const provider = await Provider.findById(req.user.id).select(
+        "_id profilePhoto"
+      );
+
+      if (!provider) {
+        fs.unlinkSync(req.file.path);
+
+        return res.status(404).json({
+          success: false,
+          message: "Provider account not found.",
+        });
+      }
+
+      const oldPhoto = provider.profilePhoto;
+
+      const photoPath = `uploads/profiles/${req.file.filename}`;
+
+      // Update only the photo field; avoid validating unrelated
+      // required fields on older provider documents.
+      await Provider.updateOne(
+        { _id: provider._id },
+        { $set: { profilePhoto: photoPath } }
+      );
+
+      // Remove the previous photo if it was stored in our profile folder.
+      if (
+        oldPhoto &&
+        oldPhoto.startsWith("uploads/profiles/") &&
+        oldPhoto !== photoPath
+      ) {
+        const oldPhotoPath = path.join(
+          __dirname,
+          "..",
+          oldPhoto
+        );
+
+        if (fs.existsSync(oldPhotoPath)) {
+          fs.unlinkSync(oldPhotoPath);
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile picture updated successfully.",
+        profilePhoto: photoPath,
+      });
+    } catch (error) {
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+
+      console.error("Profile picture upload error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Could not update profile picture.",
+      });
+    }
+  }
+);
+
+
 /* ===============================
    PROVIDER DASHBOARD
 ================================ */
@@ -484,6 +667,13 @@ if (!provider.district) {
   bufferMinutes: provider.bufferMinutes ?? 15,
   minimumBookingNoticeHours:
     provider.minimumBookingNoticeHours ?? 2,
+
+    serviceDescription: provider.serviceDescription || "",
+skills: provider.skills || [],
+languages: provider.languages || [],
+servicePincodes: provider.servicePincodes || [],
+workingHours: provider.workingHours || [],
+startingPrice: provider.startingPrice ?? 0,
 
   profileCompleted: provider.profileCompleted ?? false,
   acceptingBookings: provider.acceptingBookings ?? false,

@@ -11,6 +11,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 
 dotenv.config();
 
+
 const app = express();
 
 

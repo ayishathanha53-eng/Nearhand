@@ -494,7 +494,7 @@ export default function Dashboard() {
             </div>
             <button
               className="provider-outline-button"
-              onClick={() => navigate("/provider/profile")}
+              onClick={() => navigate("/provider/Availability")}
             >
               Manage Profile
             </button>
