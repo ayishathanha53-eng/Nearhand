@@ -4,6 +4,7 @@ import {
   Phone,
   Mail,
   Send,
+   MessageSquare,
 } from "lucide-react";
 
 function Contact() {
@@ -13,6 +14,11 @@ function Contact() {
     message: "",
   });
 
+  const [type, setType] = useState("Complaint");
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState("");
+const [success, setSuccess] = useState("");
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -20,17 +26,46 @@ function Contact() {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setSuccess("");
+  setLoading(true);
 
-    alert("Thank you! Your message has been submitted.");
+  try {
+    const response = await fetch("http://localhost:5000/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...formData,
+        type,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Could not submit your message.");
+    }
+
+    setSuccess(data.message || "Your message has been submitted.");
 
     setFormData({
       name: "",
       email: "",
       message: "",
     });
-  };
+    setType("Complaint");
+  } catch (err) {
+    setError(err.message || "Could not connect to the server.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="inner-page">
@@ -102,7 +137,24 @@ function Contact() {
           onSubmit={handleSubmit}
         >
 
-          <h2>Send Us a Message</h2>
+          <h2>Send Us any Complaints/Feedback</h2>
+
+
+
+
+{error && (
+  <p role="alert" className="contact-error">
+    {error}
+  </p>
+)}
+
+{success && (
+  <p role="status" className="contact-success">
+    {success}
+  </p>
+)}
+
+
 
           <label>Name</label>
 
@@ -137,10 +189,10 @@ function Contact() {
             required
           />
 
-          <button type="submit">
-            Send Message
-            <Send size={18} />
-          </button>
+          <button type="submit" disabled={loading}>
+  {loading ? "Sending..." : "Send Message"}
+  {!loading && <Send size={18} />}
+</button>
 
         </form>
 

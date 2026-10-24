@@ -47,6 +47,7 @@ import ProviderBookingDetails from "../pages/provider/BookingDetails";
 import AdminLogin from "../pages/admin/adminLogin";
 import AdminDashboard from "../pages/admin/Dashboard";
 import ProviderDetails from "../pages/admin/ProviderDetails";
+import AdminProtectedRoute from "../pages/admin/Protected";
 
 export default function AppRoutes() {
   return (
@@ -185,14 +186,24 @@ export default function AppRoutes() {
       />
 
       {/* Admin pages */}
-      <Route
-        path="/admin/login"
-        element={<AdminLogin />}
-      />
-      <Route
-        path="/admin/Dashboard"
-        element={<AdminDashboard />}
-      />
+    <Route
+  path="/admin/login"
+  element={<AdminLogin />}
+/>
+
+<Route element={<AdminProtectedRoute />}>
+  <Route
+    path="/admin/dashboard"
+    element={<AdminDashboard />}
+  />
+
+  <Route
+    path="/admin/provider/:id"
+    element={<ProviderDetails />}
+  />
+</Route>
+
+
       <Route
   path="/customer/provider/:providerId"
   element={<ProviderPublicProfile />}
