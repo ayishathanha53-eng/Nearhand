@@ -1,11 +1,22 @@
 
 import { useState } from "react";
+import {
+  ShieldCheck,
+  Mail,
+  LockKeyhole,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Shield,
+} from "lucide-react";
+import "./AdminLogin.css";
 
 const API_URL = "http://localhost:5000/api/admin-auth";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +43,7 @@ export default function AdminLogin() {
       }
 
       localStorage.setItem("adminToken", data.token);
-    window.location.href = "/admin/Dashboard";// Redirect to the admin dashboard
+      window.location.href = "/admin/Dashboard";
     } catch (err) {
       setError(err.message || "Could not connect to the server");
     } finally {
@@ -41,78 +52,106 @@ export default function AdminLogin() {
   }
 
   return (
-    <div style={styles.page}>
-      <form onSubmit={handleSubmit} style={styles.card}>
-        <h1>NearHand Admin</h1>
-        <p>Sign in to manage provider applications.</p>
+    <main className="admin-login-page">
+      <div className="admin-decoration admin-decoration-left" />
+      <div className="admin-decoration admin-decoration-right" />
 
-        <label htmlFor="admin-email">Admin email</label>
-        <input
-          id="admin-email"
-          type="email"
-          autoComplete="username"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
-        />
+      <header className="admin-login-header">
+        <a href="/" className="admin-brand" aria-label="NearHand home">
+          <span className="admin-brand-mark">N</span>
+          <span className="admin-brand-name">NearHand</span>
+        </a>
 
-        <label htmlFor="admin-password">Password</label>
-        <input
-          id="admin-password"
-          type="password"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
-        />
+        <div className="admin-portal-label">
+          <span />
+          Admin Portal
+        </div>
+      </header>
 
-        {error && <p role="alert" style={{ color: "#b42318" }}>{error}</p>}
+      <section className="admin-login-card">
+        <div className="admin-login-icon">
+          <ShieldCheck size={31} strokeWidth={1.8} />
+        </div>
 
-        <button type="submit" disabled={loading} style={styles.button}>
-          {loading ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-    </div>
+        <h1>Welcome back</h1>
+        <p className="admin-login-subtitle">
+          Sign in to manage provider applications.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="admin-form-group">
+            <label htmlFor="admin-email">Admin email</label>
+            <div className="admin-input-wrap">
+              <Mail size={19} aria-hidden="true" />
+              <input
+                id="admin-email"
+                type="email"
+                placeholder="Enter your admin email"
+                autoComplete="username"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="admin-form-group">
+            <label htmlFor="admin-password">Password</label>
+            <div className="admin-input-wrap">
+              <LockKeyhole size={19} aria-hidden="true" />
+              <input
+                id="admin-password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+
+              <button
+                type="button"
+                className="admin-password-toggle"
+                onClick={() => setShowPassword((previous) => !previous)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={19} />
+                ) : (
+                  <Eye size={19} />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="admin-login-error" role="alert">
+              <Shield size={18} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            className="admin-login-button"
+            type="submit"
+            disabled={loading}
+          >
+            <span>{loading ? "Signing in..." : "Sign in"}</span>
+            {!loading && <ArrowRight size={19} />}
+          </button>
+        </form>
+
+        <div className="admin-secure-note">
+          <span />
+          <ShieldCheck size={17} />
+          <span>Secure admin access</span>
+          <span />
+        </div>
+      </section>
+
+      <footer className="admin-login-footer">
+        © {new Date().getFullYear()} NearHand. All rights reserved.
+      </footer>
+    </main>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    display: "grid",
-    placeItems: "center",
-    background: "#f4f6f9",
-    padding: 20,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 400,
-    boxSizing: "border-box",
-    padding: 32,
-    background: "#fff",
-    borderRadius: 12,
-    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-  },
-  input: {
-    display: "block",
-    width: "100%",
-    boxSizing: "border-box",
-    padding: 11,
-    marginTop: 6,
-    marginBottom: 18,
-    border: "1px solid #d0d5dd",
-    borderRadius: 6,
-  },
-  button: {
-    width: "100%",
-    padding: 12,
-    marginTop: 10,
-    border: 0,
-    borderRadius: 6,
-    background: "#172554",
-    color: "#fff",
-    cursor: "pointer",
-  },
-};

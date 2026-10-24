@@ -811,175 +811,94 @@ export default function AdminDashboard() {
         )}
 
         {/* Complaints */}
-        {section === "complaints" && (
-          <div className="admin-content-card">
-            <div className="admin-section-heading">
+       
+{/* Complaints */}
+{section === "complaints" && (
+  <div className="admin-content-card">
+    <div className="admin-section-heading">
+      <div>
+        <h2>Customer Messages</h2>
+        <p>Review and manage customer complaints and feedback.</p>
+      </div>
+    </div>
+
+    <label className="admin-search admin-complaint-search">
+      <Search size={18} />
+      <input
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        placeholder="Search messages..."
+      />
+    </label>
+
+    {loading ? (
+      <div className="admin-inline-loading">
+        <RefreshCw size={20} className="admin-spin" />
+        Loading messages...
+      </div>
+    ) : filteredComplaints.length === 0 ? (
+      <div className="admin-empty-state">
+        <MessageSquareWarning size={30} />
+        <h3>No messages found</h3>
+        <p>Customer complaints and feedback will appear here.</p>
+      </div>
+    ) : (
+      <div className="admin-complaint-list">
+        {filteredComplaints.map((complaint) => (
+          <article
+            className="admin-complaint-card"
+            key={complaint._id}
+          >
+            <div className="admin-complaint-header">
               <div>
-                <h2>Customer Complaints</h2>
-                <p>Track complaints, set priority and record admin notes.</p>
+                <h3>
+                  {displayValue(
+                    complaint.name ||
+                    complaint.customer?.fullName ||
+                    complaint.customer?.name ||
+                    "Customer"
+                  )}
+                </h3>
+                <p>
+                  {displayValue(
+                    complaint.email ||
+                    complaint.customer?.email
+                  )}
+                </p>
               </div>
+
+              <span
+                className={`admin-status-badge ${String(
+                  complaint.status || "open"
+                ).toLowerCase().replace(/\s+/g, "-")}`}
+              >
+                {displayValue(complaint.status || "open")}
+              </span>
             </div>
 
-            <label className="admin-search admin-complaint-search">
-              <Search size={18} />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search complaints..."
-              />
-            </label>
+            <p className="admin-complaint-description">
+              {displayValue(
+                complaint.message ||
+                complaint.description ||
+                "No message provided."
+              )}
+            </p>
 
-            {loading ? (
-              <div className="admin-inline-loading">
-                <RefreshCw size={20} className="admin-spin" />
-                Loading complaints...
-              </div>
-            ) : filteredComplaints.length === 0 ? (
-              <div className="admin-empty-state">
-                <MessageSquareWarning size={30} />
-                <h3>No complaints found</h3>
-                <p>Customer complaints will appear here when submitted.</p>
-              </div>
-            ) : (
-              <div className="admin-complaint-list">
-                {filteredComplaints.map((complaint) => {
-                  const edits = complaintEdits[complaint._id] || {};
+            <div className="admin-complaint-footer">
+              <span>
+                {complaint.createdAt
+                  ? new Date(complaint.createdAt).toLocaleDateString("en-IN")
+                  : "Date unavailable"}
+              </span>
 
-                  return (
-                    <article
-                      className="admin-complaint-card"
-                      key={complaint._id}
-                    >
-                      <div className="admin-complaint-header">
-                        <div>
-                          <h3>
-                            {displayValue(
-                              complaint.subject || complaint.category
-                            )}
-                          </h3>
-                          <p>
-                            Customer:{" "}
-                            {displayValue(
-                              complaint.customer?.fullName ||
-                                complaint.customer?.name ||
-                                complaint.customer?.email
-                            )}
-                          </p>
-                        </div>
-                        <span
-                          className={`admin-status-badge ${String(
-                            edits.status ?? complaint.status ?? "open"
-                          ).toLowerCase().replace(/\s+/g, "-")}`}
-                        >
-                          {displayValue(edits.status ?? complaint.status ?? "open")}
-                        </span>
-                      </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
-                      <p className="admin-complaint-description">
-                        {displayValue(complaint.description)}
-                      </p>
-
-                      {complaint.provider && (
-                        <p className="admin-complaint-related">
-                          Provider:{" "}
-                          {displayValue(
-                            complaint.provider.fullName ||
-                              complaint.provider.email
-                          )}
-                        </p>
-                      )}
-
-                      <div className="admin-complaint-fields">
-                        <label>
-                          Status
-                          <select
-                            value={edits.status ?? complaint.status ?? "open"}
-                            onChange={(event) =>
-                              editComplaint(
-                                complaint._id,
-                                "status",
-                                event.target.value,
-                                complaint
-                              )
-                            }
-                          >
-                            <option value="open">Open</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="rejected">Rejected</option>
-                          </select>
-                        </label>
-
-                        <label>
-                          Priority
-                          <select
-                            value={
-                              edits.priority ?? complaint.priority ?? "medium"
-                            }
-                            onChange={(event) =>
-                              editComplaint(
-                                complaint._id,
-                                "priority",
-                                event.target.value,
-                                complaint
-                              )
-                            }
-                          >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                          </select>
-                        </label>
-                      </div>
-
-                      <label className="admin-note-label">
-                        Admin Note
-                        <textarea
-                          rows={3}
-                          value={
-                            edits.adminNote ?? complaint.adminNote ?? ""
-                          }
-                          onChange={(event) =>
-                            editComplaint(
-                              complaint._id,
-                              "adminNote",
-                              event.target.value,
-                              complaint
-                            )
-                          }
-                          placeholder="Add an internal note or action taken..."
-                        />
-                      </label>
-
-                      <div className="admin-complaint-footer">
-                        <span>
-                          Created{" "}
-                          {complaint.createdAt
-                            ? new Date(complaint.createdAt).toLocaleDateString(
-                                "en-IN"
-                              )
-                            : "date unavailable"}
-                        </span>
-                        <button
-                          className="admin-primary-btn"
-                          onClick={() =>
-                            updateComplaint(complaint._id, complaint)
-                          }
-                          disabled={busyId === complaint._id}
-                        >
-                          <Save size={16} />
-                          {busyId === complaint._id
-                            ? "Saving..."
-                            : "Save Changes"}
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
 
         <footer className="admin-footer">
           <span>Nearhand Admin Panel</span>

@@ -339,13 +339,12 @@ router.patch("/providers/:id/reject", async (req, res) => {
 router.get("/complaints", async (req, res) => {
   try {
     const complaints = await Complaint.find()
-      .populate("customer", "fullName name email")
-      .populate("provider", "fullName name email serviceCategory")
       .sort({ createdAt: -1 })
       .lean();
 
     res.json({ complaints });
   } catch (error) {
+    console.error("Load complaints error:", error);
     res.status(500).json({ message: "Could not load complaints" });
   }
 });

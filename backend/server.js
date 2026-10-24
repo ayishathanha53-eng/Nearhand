@@ -8,6 +8,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const complaintRoutes = require("./routes/complaintroutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 require("dotenv").config();
 dotenv.config();
@@ -36,6 +37,7 @@ app.use("/api/providers", providerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/customer", customerRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/contact", contactRoutes);
 
 // Basic test route
 app.get("/", (req, res) => {
