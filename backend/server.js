@@ -40,6 +40,8 @@ app.use("/api/customer", customerRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/favourites", favouriteRoutes);
+app.use("/api/profile", require("./routes/profilePhoto"));
+app.use("/api/password-reset", require("./routes/passwordReset"));
 
 // Basic test route
 app.get("/", (req, res) => {
