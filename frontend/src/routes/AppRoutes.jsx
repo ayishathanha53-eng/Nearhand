@@ -21,9 +21,7 @@ import BookingDetails from "../pages/customer/BookingDetails";
 import IndividualBooking from "../pages/customer/IndividualBooking";
 import BookingHistory from "../pages/customer/BookingHistory";
 import BookService from "../pages/customer/BookService";
-import Chat from "../pages/customer/Chat";
 import Favorites from "../pages/customer/Favorites";
-import LiveTracking from "../pages/customer/LiveTracking";
 import Payment from "../pages/customer/Payment";
 import Profile from "../pages/customer/Profile";
 import SearchProviders from "../pages/customer/SearchProviders";
@@ -37,7 +35,6 @@ import Availability from "../pages/provider/Availability";
 import ProviderChat from "../pages/provider/Chat";
 import Earnings from "../pages/provider/Earnings";
 import MyJobs from "../pages/provider/MyJobs";
-import Portfolio from "../pages/provider/Portfolio";
 import ProviderProfile from "../pages/provider/Profile";
 import Reviews from "../pages/provider/Reviews";
 import ProviderNotifications from "../pages/provider/Notifications";
@@ -105,10 +102,7 @@ export default function AppRoutes() {
         path="/provider/chat"
         element={<ProviderChat />}
       />
-      <Route
-        path="/provider/portfolio"
-        element={<Portfolio />}
-      />
+     
       <Route
         path="/provider/profile"
         element={<ProviderProfile />}
@@ -170,18 +164,7 @@ export default function AppRoutes() {
         path="/customer/favorites"
         element={<Favorites />}
       />
-      <Route
-        path="/customer/chat"
-        element={<Chat />}
-      />
-      <Route
-        path="/customer/live-tracking"
-        element={<LiveTracking />}
-      />
-      <Route
-        path="/customer/payment"
-        element={<Payment />}
-      />
+     
       <Route
         path="/customer/profile"
         element={<Profile />}

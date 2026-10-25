@@ -109,10 +109,7 @@ export default function CustomerBookingDetails() {
             <p>{booking.price ?? "Not specified"}</p>
           </div>
 
-          <div className="booking-detail-field">
-            <strong>Payment status</strong>
-            <p>{booking.paymentStatus || "Pending"}</p>
-          </div>
+         
 
           <div className="booking-detail-field">
             <strong>Description</strong>

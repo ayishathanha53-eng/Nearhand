@@ -551,38 +551,62 @@ const submitInterviewResult = async (result) => {
     disabled={interviewLoading}
   />
 
-  <div className="provider-decision-actions">
-    <button
-      type="button"
-      className="provider-action-btn provider-approve-btn"
-      onClick={scheduleInterview}
-      disabled={interviewLoading}
-    >
-      {interviewLoading ? "Saving..." : "Schedule Interview"}
-    </button>
+  
+<div className="provider-decision-actions">
+  <button
+    type="button"
+    className="provider-action-btn provider-approve-btn"
+    onClick={scheduleInterview}
+    disabled={
+      interviewLoading ||
+      busy ||
+      provider.verificationStatus === "Rejected" ||
+      provider.verificationStatus === "Approved"
+    }
+  >
+    {interviewLoading ? "Saving..." : "Schedule Interview"}
+  </button>
 
-    {provider.interviewStatus === "Scheduled" && (
-      <>
-        <button
-          type="button"
-          className="provider-action-btn provider-approve-btn"
-          onClick={() => submitInterviewResult("Pass")}
-          disabled={interviewLoading}
-        >
-          Mark Interview Passed
-        </button>
-
-        <button
-          type="button"
-          className="provider-action-btn provider-reject-btn"
-          onClick={() => submitInterviewResult("Fail")}
-          disabled={interviewLoading}
-        >
-          Mark Interview Failed
-        </button>
-      </>
+  {provider.verificationStatus !== "Rejected" &&
+    provider.verificationStatus !== "Approved" && (
+      <button
+        type="button"
+        className="provider-action-btn provider-reject-btn"
+        onClick={() => {
+          setError("");
+          setNotice("");
+          setShowRejectDialog(true);
+        }}
+        disabled={busy || interviewLoading}
+      >
+        <XCircle size={17} />
+        Reject Application
+      </button>
     )}
-  </div>
+
+  {provider.interviewStatus === "Scheduled" && (
+    <>
+      <button
+        type="button"
+        className="provider-action-btn provider-approve-btn"
+        onClick={() => submitInterviewResult("Pass")}
+        disabled={interviewLoading || busy}
+      >
+        Mark Interview Passed
+      </button>
+
+      <button
+        type="button"
+        className="provider-action-btn provider-reject-btn"
+        onClick={() => submitInterviewResult("Fail")}
+        disabled={interviewLoading || busy}
+      >
+        Mark Interview Failed
+      </button>
+    </>
+  )}
+</div>
+
 
   {provider.interviewNotes && (
     <p>
@@ -592,45 +616,7 @@ const submitInterviewResult = async (result) => {
 </section>
 
 
-        {/* Application actions */}
-        {provider.verificationStatus === "Pending" &&
-  provider.interviewStatus === "Completed" &&
-  provider.interviewResult === "Pass" &&  (
-          <section className="provider-details-card">
-            <div className="provider-section-title">
-              <ShieldCheck size={22} />
-              <h2>Application Decision</h2>
-            </div>
-
-            <p>
-              Review the information and documents before making a decision.
-              Rejection requires a reason.
-            </p>
-
-            <div className="provider-decision-actions">
-              <button
-                className="provider-action-btn provider-approve-btn"
-                onClick={approveProvider}
-                disabled={busy}
-              >
-                <CheckCircle2 size={17} />
-                {busy ? "Please wait..." : "Approve"}
-              </button>
-
-              <button
-                className="provider-action-btn provider-reject-btn"
-                onClick={() => {
-                  setError("");
-                  setShowRejectDialog(true);
-                }}
-                disabled={busy}
-              >
-                <XCircle size={17} />
-                Reject
-              </button>
-            </div>
-          </section>
-        )}
+       
 
         {/* Rejection dialog */}
         {showRejectDialog && (

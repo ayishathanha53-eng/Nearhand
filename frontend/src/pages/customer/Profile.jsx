@@ -419,8 +419,7 @@ export default function Profile() {
         </div>
 
         <p className="profile-security-note">
-          Password changes can be added here after connecting a secure
-          password-update endpoint.
+        
         </p>
       </section>
     </div>

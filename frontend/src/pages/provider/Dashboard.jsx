@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import NotificationBell from "../../components/NotificationBell";
 
 import {
+  Home,
+  User,
+  Settings,
   LayoutDashboard,
   CalendarDays,
   BriefcaseBusiness,
@@ -10,7 +13,7 @@ import {
   CheckCircle,
   Clock,
   UserRound,
-  Settings,
+  UserRoundPen,
   LogOut,
   Menu,
   Bell,
@@ -20,6 +23,7 @@ import {
   LoaderCircle,
   MessageCircle,
   Image,
+  ArrowRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./ProviderDashboard.css";
@@ -55,6 +59,10 @@ export default function Dashboard() {
         );
 
         const result = await response.json();
+
+
+        console.log("Provider dashboard response:", result);
+console.log("Rejection reason:", result.provider?.rejectionReason);
 
         if (!response.ok) {
           throw new Error(result.message || "Unable to load dashboard");
@@ -167,13 +175,7 @@ export default function Dashboard() {
   <Bell size={19} />
   Notifications
 </button>
-<button
-  className="provider-nav"
-  onClick={() => navigate("/provider/my-jobs")}
->
-  <BriefcaseBusiness size={19} />
-  My Jobs
-</button>
+
 
 <button
   className="provider-nav"
@@ -193,35 +195,13 @@ export default function Dashboard() {
 
 <button
   className="provider-nav"
-  onClick={() => navigate("/provider/chat")}
->
-  <MessageCircle size={19} />
-  Chat
-</button>
-
-<button
-  className="provider-nav"
-  onClick={() => navigate("/provider/portfolio")}
->
-  <Image size={19} />
-  Portfolio
-</button>
-
-<button
-  className="provider-nav"
   onClick={() => navigate("/provider/profile")}
 >
   <UserRound size={19} />
   My Profile
 </button>
 
-<button
-  className="provider-nav"
-  onClick={() => navigate("/provider/settings")}
->
-  <Settings size={19} />
-  Settings
-</button>
+
 
 
         <div className="provider-sidebar-bottom">
@@ -319,18 +299,51 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {provider.verificationStatus !== "Approved" && (
-            <div className="provider-verification-notice">
-              <Clock size={21} />
-              <div>
-                <strong>Verification status: {provider.verificationStatus}</strong>
-                <p>
-                  Your provider account must be approved before you can be
-                  presented as a verified service provider.
-                </p>
-              </div>
-            </div>
-          )}
+          
+{provider.verificationStatus === "Rejected" ? (
+  <div className="provider-rejection-notice">
+    <div className="rejection-notice-icon">
+      <span>!</span>
+    </div>
+
+    <div className="rejection-notice-content">
+      <strong>Your provider application was rejected</strong>
+
+      <p>
+        Unfortunately, your application has not been approved.
+        Please review the reason below.
+      </p>
+
+      <div className="rejection-reason-box">
+        <strong>Reason for rejection</strong>
+        <p>
+          {provider.rejectionReason?.trim() ||
+            "No rejection reason was provided. Please contact the NearHand admin team."}
+        </p>
+      </div>
+
+      <p className="rejection-contact-message">
+        If you need clarification, please contact the admin team.
+      </p>
+    </div>
+  </div>
+) : provider.verificationStatus !== "Approved" ? (
+  <div className="provider-verification-notice">
+    <Clock size={21} />
+
+    <div>
+      <strong>
+        Verification status: {provider.verificationStatus || "Pending"}
+      </strong>
+
+      <p>
+        Your provider account must be approved before you can
+        be presented as a verified service provider.
+      </p>
+    </div>
+  </div>
+) : null}
+
 
           <div className="provider-stats-grid">
             <StatCard
@@ -434,50 +447,23 @@ export default function Dashboard() {
               )}
             </section>
 
-            <section className="provider-panel profile-panel">
-              <div className="provider-panel-heading">
-                <div>
-                  <h2>Profile Completion</h2>
-                  <p>Build customer confidence</p>
-                </div>
-                <UserRound size={21} />
-              </div>
+            <div className="profile-card">
+  <div className="profile-icon">
+    <UserRoundPen size={28} />
+  </div>
 
-              <div className="completion-circle">
-                <svg viewBox="0 0 120 120">
-                  <circle
-                    className="completion-track"
-                    cx="60"
-                    cy="60"
-                    r="48"
-                  />
-                  <circle
-                    className="completion-progress"
-                    cx="60"
-                    cy="60"
-                    r="48"
-                    strokeDasharray={`${(data.profileCompletion || 0) * 3.016} 301.6`}
-                  />
-                </svg>
+  <div className="profile-info">
+    <h3>Your Service Profile</h3>
+    <p>Manage your service details, skills, pricing, and availability.</p>
+  </div>
 
-                <div className="completion-number">
-                  <strong>{data.profileCompletion || 0}%</strong>
-                  <span>Complete</span>
-                </div>
-              </div>
-
-              <p className="completion-description">
-                Complete your profile details to help customers learn more
-                about your services.
-              </p>
-
-              <button
-                className="provider-outline-button"
-                onClick={() => navigate("/provider/profile")}
-              >
-                Update Profile
-              </button>
-            </section>
+  <button
+    className="update-profile-btn"
+    onClick={() => navigate("/provider/Availability")}
+  >
+    Update Profile <ArrowRight size={18} />
+  </button>
+</div>
           </div>
 
           <section className="provider-panel provider-business-card">
@@ -492,12 +478,7 @@ export default function Dashboard() {
                 through your provider profile.
               </p>
             </div>
-            <button
-              className="provider-outline-button"
-              onClick={() => navigate("/provider/Availability")}
-            >
-              Manage Profile
-            </button>
+            
           </section>
 
           <footer className="provider-footer">

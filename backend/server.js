@@ -8,13 +8,10 @@ const adminRoutes = require("./routes/adminRoutes");
 const complaintRoutes = require("./routes/complaintroutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-<<<<<<< HEAD
 const contactRoutes = require("./routes/contactRoutes");
-=======
 const reviewRoutes = require("./routes/reviewRoutes");
 const favouriteRoutes = require("./routes/favouriteRoutes");
 
->>>>>>> origin/athul
 
 dotenv.config();
 
@@ -42,14 +39,11 @@ app.use("/api/providers", providerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/customer", customerRoutes);
 app.use("/api/notifications", notificationRoutes);
-<<<<<<< HEAD
 app.use("/api/contact", contactRoutes);
-=======
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/favourites", favouriteRoutes);
 app.use("/api/profile", require("./routes/profilePhoto"));
 app.use("/api/password-reset", require("./routes/passwordReset"));
->>>>>>> origin/athul
 
 // Basic test route
 app.get("/", (req, res) => {

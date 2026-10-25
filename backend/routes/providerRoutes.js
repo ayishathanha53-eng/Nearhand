@@ -332,7 +332,9 @@ if (state !== "Kerala") {
           email: provider.email,
 
           verificationStatus:
-            provider.verificationStatus
+            provider.verificationStatus,
+
+            rejectionReason: provider.rejectionReason || "",
 
         }
 
@@ -411,6 +413,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
         serviceArea: provider.serviceArea,
         about: provider.about,
 
+        rejectionReason: provider.rejectionReason || "",
         serviceDescription: provider.serviceDescription || "",
         skills: provider.skills || [],
         languages: provider.languages || [],
@@ -667,7 +670,7 @@ if (!provider.district) {
   bufferMinutes: provider.bufferMinutes ?? 15,
   minimumBookingNoticeHours:
     provider.minimumBookingNoticeHours ?? 2,
-
+    rejectionReason: provider.rejectionReason || "",
     serviceDescription: provider.serviceDescription || "",
 skills: provider.skills || [],
 languages: provider.languages || [],

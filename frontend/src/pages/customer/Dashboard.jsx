@@ -138,34 +138,10 @@ export default function Dashboard() {
 
     <button
       className="customer-nav"
-      onClick={() => navigate("/customer/chat")}
-    >
-      <MessageCircle size={19} />
-      Chat
-    </button>
-
-    <button
-      className="customer-nav"
       onClick={() => navigate("/customer/notifications")}
     >
       <Bell size={19} />
       Notifications
-    </button>
-
-    <button
-      className="customer-nav"
-      onClick={() => navigate("/customer/live-tracking")}
-    >
-      <MapPin size={19} />
-      Live Tracking
-    </button>
-
-    <button
-      className="customer-nav"
-      onClick={() => navigate("/customer/payment")}
-    >
-      <CreditCard size={19} />
-      Payment
     </button>
 
     <button
@@ -198,25 +174,19 @@ export default function Dashboard() {
         </div>
 
         <div className="customer-header-actions">
-          <button
-            className="customer-primary-btn"
-            onClick={() => navigate("/services")}
-          >
-            <Search size={18} />
-            Find a Service
-          </button>
+        
 
           <NotificationBell role="customer" />
 
           <button
-            type="button"
-            className="customer-avatar"
-            onClick={() => navigate("/customer/profile")}
-            aria-label="Open my profile"
-            title="My Profile"
-          >
-            C
-          </button>
+  type="button"
+  className="customer-avatar"
+  onClick={() => navigate("/customer/profile")}
+  aria-label="Open my profile"
+  title="My Profile"
+>
+  <UserRound size={22} strokeWidth={2} />
+</button>
         </div>
       </header>
 

@@ -559,16 +559,13 @@ useEffect(() => {
           <h3>Payment information</h3>
 
           <Info
-            label="Service price"
+            label="Service Fixed price"
             value={`₹${Number(
               booking.price || 0
             ).toLocaleString("en-IN")}`}
           />
 
-          <Info
-            label="Payment status"
-            value={booking.paymentStatus || "Pending"}
-          />
+          
         </section>
       </section>
     </main>
