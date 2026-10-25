@@ -7,7 +7,7 @@ const Review = require("../models/Review");
 const Booking = require("../models/Booking");
 const Provider = require("../models/Provider");
 const authMiddleware = require("../middleware/authMiddleware");
-
+const adminAuth = require("../middleware/adminAuth");
 // Submit a review for a completed booking.
 // POST /api/reviews
 router.post("/", authMiddleware, async (req, res) => {
@@ -226,6 +226,44 @@ router.get("/provider/:providerId", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to load provider reviews.",
+    });
+  }
+});
+
+ // Admin: View reviews across all providers
+
+router.get("/admin/all", adminAuth, async (req, res) => {
+  try {
+    const reviews = await Review.find({})
+      .populate("customer", "fullName")
+      .populate("provider", "fullName serviceCategory")
+      .select("rating comment createdAt customer provider")
+      .sort({ createdAt: -1 })
+      .limit(1000)
+      .lean();
+
+    const summary = await Review.aggregate([
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          totalReviews: { $sum: 1 },
+        },
+      },
+    ]);
+
+    return res.json({
+      success: true,
+      reviews,
+      averageRating: summary[0]?.averageRating || 0,
+      totalReviews: summary[0]?.totalReviews || 0,
+    });
+  } catch (error) {
+    console.error("Fetch all admin reviews error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load reviews.",
     });
   }
 });

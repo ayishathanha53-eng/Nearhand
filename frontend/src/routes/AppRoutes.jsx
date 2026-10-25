@@ -49,6 +49,7 @@ import AdminDashboard from "../pages/admin/Dashboard";
 import ProviderDetails from "../pages/admin/ProviderDetails";
 import AdminProtectedRoute from "../pages/admin/Protected";
 
+import AdminReviews from "../pages/admin/Reviews";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 
@@ -212,9 +213,10 @@ export default function AppRoutes() {
 
 
       <Route
-  path="/customer/provider/:providerId"
-  element={<ProviderPublicProfile />}
-/>
+        path="/customer/provider/:providerId"
+        element={<ProviderPublicProfile />}
+      />
+      <Route path="/admin/reviews" element={<AdminReviews />} />
       <Route
         path="/admin/providers/:id"
         element={<ProviderDetails />}
