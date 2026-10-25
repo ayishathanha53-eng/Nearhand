@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const Provider = require("../models/provider");
+const Provider = require("../models/Provider");
 const Complaint = require("../models/complaint");
 const adminAuth = require("../middleware/adminAuth");
 const sendInterviewEmail = require("../utils/sendInterviewEmail");

@@ -8,6 +8,9 @@ const adminRoutes = require("./routes/adminRoutes");
 const complaintRoutes = require("./routes/complaintroutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
+const favouriteRoutes = require("./routes/favouriteRoutes");
+
 
 dotenv.config();
 
@@ -35,6 +38,8 @@ app.use("/api/providers", providerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/customer", customerRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/favourites", favouriteRoutes);
 
 // Basic test route
 app.get("/", (req, res) => {

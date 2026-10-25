@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import {
   ArrowLeft,
   MapPin,
@@ -15,6 +16,7 @@ import {
   CheckCircle2,
   Timer,
   Navigation,
+  Star
 } from "lucide-react";
 import "./ProviderPublicProfile.css";
 
@@ -28,6 +30,16 @@ export default function ProviderPublicProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [photoFailed, setPhotoFailed] = useState(false);
+
+  const [isFavourite, setIsFavourite] = useState(false);
+  const [favouriteLoading, setFavouriteLoading] = useState(false);
+  const [favouriteError, setFavouriteError] = useState("");
+
+  const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewError, setReviewError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -190,6 +202,139 @@ export default function ProviderPublicProfile() {
     "This provider has not added a service description yet.";
 
   const photoUrl = getPhotoUrl(provider.profilePhoto);
+
+
+
+
+async function loadReviews() {
+  if (!providerId) return;
+
+  setReviewsLoading(true);
+  setReviewError("");
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/reviews/provider/${providerId}`
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Unable to load reviews.");
+    }
+
+    setReviews(result.reviews || []);
+    setAverageRating(Number(result.averageRating) || 0);
+    setTotalReviews(Number(result.totalReviews) || 0);
+  } catch (error) {
+    setReviewError(error.message || "Unable to load reviews.");
+  } finally {
+    setReviewsLoading(false);
+  }
+}
+
+useEffect(() => {
+  loadReviews();
+}, [providerId]);
+
+async function loadFavouriteStatus() {
+  const token = localStorage.getItem("token");
+
+  if (!token || !providerId) return;
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/customer/favourites`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) return;
+
+    // Supports common response property names.
+    const savedProviders =
+      result.favourites ??
+      result.favorites ??
+      result.providers ??
+      [];
+
+    setIsFavourite(
+      savedProviders.some((item) => {
+        const id =
+          typeof item === "string"
+            ? item
+            : item.provider?._id ??
+              item.provider?.id ??
+              item._id ??
+              item.id;
+
+        return String(id) === String(providerId);
+      })
+    );
+  } catch (error) {
+    console.error("Load favourites error:", error);
+  }
+}
+
+async function toggleFavourite() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  setFavouriteLoading(true);
+  setFavouriteError("");
+
+  try {
+    const method = isFavourite ? "DELETE" : "POST";
+
+    const response = await fetch(
+      `${API_URL}/api/customer/favourites/${providerId}`,
+      {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Unable to update favourites.");
+    }
+
+    setIsFavourite(!isFavourite);
+  } catch (error) {
+    setFavouriteError(error.message || "Unable to update favourites.");
+  } finally {
+    setFavouriteLoading(false);
+  }
+}
+
+
+useEffect(() => {
+  loadFavouriteStatus();
+}, [providerId]);
+
+
+
+
+
+
+
+
+
+
+
+
 
   return (
     <main className="provider-profile-page">
@@ -476,6 +621,88 @@ export default function ProviderPublicProfile() {
                 </div>
               )}
             </section>
+
+
+            <section
+              className="provider-info-card"
+              id="provider-reviews"
+            >
+              <div className="provider-section-heading">
+                <span className="provider-section-icon">
+                  <Star size={20} />
+                </span>
+
+                <div>
+                  <h2>Customer Reviews</h2>
+                  <p>Feedback from customers who booked this provider</p>
+                </div>
+              </div>
+
+              <div className="provider-review-summary">
+                <strong>
+                  {averageRating.toFixed(1)}
+                </strong>
+
+                <div>
+                  <div className="provider-review-stars" aria-label={`${averageRating.toFixed(1)} out of 5 stars`}>
+                    {"★".repeat(Math.round(averageRating))}
+                    {"☆".repeat(5 - Math.round(averageRating))}
+                  </div>
+
+                  <p>
+                    {totalReviews}{" "}
+                    {totalReviews === 1 ? "review" : "reviews"}
+                  </p>
+                </div>
+              </div>
+
+              {reviewsLoading ? (
+                <p>Loading customer reviews...</p>
+              ) : reviewError ? (
+                <p role="alert">{reviewError}</p>
+              ) : reviews.length === 0 ? (
+                <div className="provider-empty-note">
+                  <MessageCircle size={24} />
+                  <p>No reviews yet. Be the first customer to share feedback after completing a booking.</p>
+                </div>
+              ) : (
+                <div className="provider-reviews-list">
+                  {reviews.map((review) => (
+                    <article
+                      className="provider-review-item"
+                      key={review._id}
+                    >
+                      <div className="provider-review-top">
+                        <strong>
+                          {review.customer?.fullName || "Customer"}
+                        </strong>
+
+                        <span className="provider-review-stars">
+                          {"★".repeat(review.rating)}
+                          {"☆".repeat(5 - review.rating)}
+                        </span>
+                      </div>
+
+                      <p className="provider-review-date">
+                        {review.createdAt
+                          ? new Date(review.createdAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : ""}
+                      </p>
+
+                      {review.comment && (
+                        <p className="provider-review-comment">
+                          {review.comment}
+                        </p>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
 
           {/* Right-side action panel */}
@@ -521,23 +748,40 @@ export default function ProviderPublicProfile() {
               <button
                 type="button"
                 className="provider-secondary-action provider-favourite-action"
-                onClick={() => {
-                  // Connect your teammate's favourite logic here.
-                }}
+                onClick={toggleFavourite}
+                disabled={favouriteLoading}
               >
-                <Heart size={19} />
-                <span>Add to Favourites</span>
+                <Heart
+                  size={19}
+                  fill={isFavourite ? "currentColor" : "none"}
+                />
+                <span>
+                  {favouriteLoading
+                    ? "Updating..."
+                    : isFavourite
+                    ? "Remove from Favourites"
+                    : "Add to Favourites"}
+                </span>
               </button>
+
+              {favouriteError && (
+                <p role="alert">{favouriteError}</p>
+              )}
 
               <button
                 type="button"
                 className="provider-secondary-action"
-                onClick={() => {
-                  // Connect your teammate's reviews logic here.
-                }}
+                onClick={() =>
+                  document.getElementById("provider-reviews")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  })
+                }
               >
                 <MessageCircle size={19} />
-                <span>Customer Reviews</span>
+                <span>
+                  Customer Reviews ({totalReviews})
+                </span>
               </button>
             </section>
           </aside>

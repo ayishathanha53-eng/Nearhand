@@ -6,10 +6,10 @@ const Notification = require("../models/Notification");
 
 
 const Booking = require("../models/Booking");
-const Provider = require("../models/provider");
+const Provider = require("../models/Provider");
 const authMiddleware = require("../middleware/authMiddleware");
 const User = require("../models/user");
-
+const Favourite = require("../models/Favourite");
 
 // Shared eligibility rules for customer visibility and booking creation.
 const LIVE_PROVIDER_FILTER = {
@@ -560,6 +560,155 @@ router.patch("/profile", authMiddleware, async (req, res) => {
     });
   }
 });
+
+/* ==========================================
+   CUSTOMER FAVOURITES
+========================================== */
+
+// Get the logged-in customer's favourite providers
+router.get("/favourites", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Customer access required.",
+      });
+    }
+
+    const favourites = await Favourite.find({
+      customer: req.user.id,
+    })
+      .populate(
+        "provider",
+        "fullName serviceCategory city district profilePhoto startingPrice"
+      )
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({
+      success: true,
+      favourites: favourites
+        .filter((item) => item.provider)
+        .map((item) => ({
+          favouriteId: item._id,
+          provider: item.provider,
+        })),
+    });
+  } catch (error) {
+    console.error("Fetch favourites error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load favourites.",
+    });
+  }
+});
+
+// Add a provider to favourites
+router.post("/favourites/:providerId", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Customer access required.",
+      });
+    }
+
+    const { providerId } = req.params;
+
+    if (!mongoose.isValidObjectId(providerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid provider ID.",
+      });
+    }
+
+    const provider = await Provider.findById(providerId).select("_id");
+
+    if (!provider) {
+      return res.status(404).json({
+        success: false,
+        message: "Provider not found.",
+      });
+    }
+
+    const favourite = await Favourite.findOneAndUpdate(
+      {
+        customer: req.user.id,
+        provider: provider._id,
+      },
+      {
+        $setOnInsert: {
+          customer: req.user.id,
+          provider: provider._id,
+        },
+      },
+      {
+        new: true,
+        upsert: true,
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Provider added to favourites.",
+      favourite,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(200).json({
+        success: true,
+        message: "Provider is already in favourites.",
+      });
+    }
+
+    console.error("Add favourite error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to add favourite.",
+    });
+  }
+});
+
+// Remove a provider from favourites
+router.delete(
+  "/favourites/:providerId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      if (req.user.role !== "customer") {
+        return res.status(403).json({
+          success: false,
+          message: "Customer access required.",
+        });
+      }
+
+      const { providerId } = req.params;
+
+      if (!mongoose.isValidObjectId(providerId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid provider ID.",
+        });
+      }
+
+      await Favourite.deleteOne({
+        customer: req.user.id,
+        provider: providerId,
+      });
+
+      return res.json({
+        success: true,
+        message: "Provider removed from favourites.",
+      });
+    } catch (error) {
+      console.error("Remove favourite error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Unable to remove favourite.",
+      });
+    }
+  }
+);
 
 
 
