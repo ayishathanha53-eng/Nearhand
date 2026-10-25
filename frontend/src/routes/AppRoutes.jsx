@@ -47,7 +47,7 @@ import ProviderBookingDetails from "../pages/provider/BookingDetails";
 import AdminLogin from "../pages/admin/adminLogin";
 import AdminDashboard from "../pages/admin/Dashboard";
 import ProviderDetails from "../pages/admin/ProviderDetails";
-
+import AdminReviews from "../pages/admin/Reviews";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 
@@ -201,9 +201,10 @@ export default function AppRoutes() {
         element={<AdminDashboard />}
       />
       <Route
-  path="/customer/provider/:providerId"
-  element={<ProviderPublicProfile />}
-/>
+        path="/customer/provider/:providerId"
+        element={<ProviderPublicProfile />}
+      />
+      <Route path="/admin/reviews" element={<AdminReviews />} />
       <Route
         path="/admin/providers/:id"
         element={<ProviderDetails />}
