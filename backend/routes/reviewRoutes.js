@@ -21,7 +21,10 @@ router.post("/", authMiddleware, async (req, res) => {
 
     const { bookingId, rating, comment = "" } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+    if (
+      typeof bookingId !== "string" ||
+      !mongoose.Types.ObjectId.isValid(bookingId)
+    ) {
       return res.status(400).json({
         success: false,
         message: "A valid booking ID is required.",
@@ -35,7 +38,7 @@ router.post("/", authMiddleware, async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "Rating must be between 1 and 5.",
+        message: "Rating must be an integer between 1 and 5.",
       });
     }
 
@@ -63,6 +66,18 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
+    // Return a clear error if a review already exists.
+    const existingReview = await Review.findOne({
+      booking: booking._id,
+    }).lean();
+
+    if (existingReview) {
+      return res.status(409).json({
+        success: false,
+        message: "You have already reviewed this booking.",
+      });
+    }
+
     const review = await Review.create({
       booking: booking._id,
       customer: booking.customer,
@@ -79,6 +94,8 @@ router.post("/", authMiddleware, async (req, res) => {
       review,
     });
   } catch (error) {
+    // Handles simultaneous duplicate submissions when the database
+    // has a unique index on the booking field.
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
@@ -91,6 +108,60 @@ router.post("/", authMiddleware, async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to submit your review.",
+    });
+  }
+});
+
+// Check whether the logged-in customer has reviewed a booking.
+// GET /api/reviews/booking/:bookingId
+router.get("/booking/:bookingId", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only customers can check their booking reviews.",
+      });
+    }
+
+    const { bookingId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID.",
+      });
+    }
+
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      customer: req.user.id,
+    }).select("_id");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found.",
+      });
+    }
+
+    const review = await Review.findOne({
+      booking: booking._id,
+      customer: req.user.id,
+    })
+      .select("rating comment createdAt")
+      .lean();
+
+    return res.json({
+      success: true,
+      reviewed: Boolean(review),
+      review: review || null,
+    });
+  } catch (error) {
+    console.error("Check booking review error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to check review status.",
     });
   }
 });

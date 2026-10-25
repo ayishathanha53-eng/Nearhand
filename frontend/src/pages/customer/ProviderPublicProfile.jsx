@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -16,8 +17,9 @@ import {
   CheckCircle2,
   Timer,
   Navigation,
-  Star
+  Star,
 } from "lucide-react";
+
 import "./ProviderPublicProfile.css";
 
 const API_URL = "http://localhost:5000";
@@ -26,6 +28,9 @@ export default function ProviderPublicProfile() {
   const { providerId } = useParams();
   const navigate = useNavigate();
 
+  // -----------------------------
+  // State
+  // -----------------------------
   const [provider, setProvider] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -41,19 +46,25 @@ export default function ProviderPublicProfile() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewError, setReviewError] = useState("");
 
+  // -----------------------------
+  // Load provider profile
+  // -----------------------------
   useEffect(() => {
     let cancelled = false;
 
     async function loadProfile() {
       setLoading(true);
       setError("");
+      setProvider(null);
       setPhotoFailed(false);
 
       const token = localStorage.getItem("token");
 
       if (!token) {
-        setError("Please log in to view this provider.");
-        setLoading(false);
+        if (!cancelled) {
+          setError("Please log in to view this provider.");
+          setLoading(false);
+        }
         return;
       }
 
@@ -76,11 +87,17 @@ export default function ProviderPublicProfile() {
         }
 
         if (!cancelled) {
-          setProvider(data.provider);
+          setProvider(data.provider || null);
+
+          if (!data.provider) {
+            setError("Provider profile not found.");
+          }
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err.message || "Unable to load provider profile.");
+          setError(
+            err.message || "Unable to load provider profile."
+          );
         }
       } finally {
         if (!cancelled) {
@@ -96,6 +113,9 @@ export default function ProviderPublicProfile() {
     };
   }, [providerId]);
 
+  // -----------------------------
+  // Helper functions
+  // -----------------------------
   function getPhotoUrl(photo) {
     if (!photo) return "";
 
@@ -114,6 +134,7 @@ export default function ProviderPublicProfile() {
     if (!time) return "";
 
     const match = time.match(/^(\d{1,2}):(\d{2})$/);
+
     if (!match) return time;
 
     const hours = Number(match[1]);
@@ -132,13 +153,191 @@ export default function ProviderPublicProfile() {
     );
   }
 
+  // -----------------------------
+  // Load customer reviews
+  // -----------------------------
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadReviews() {
+      if (!providerId) {
+        setReviews([]);
+        setAverageRating(0);
+        setTotalReviews(0);
+        setReviewsLoading(false);
+        return;
+      }
+
+      setReviewsLoading(true);
+      setReviewError("");
+
+      try {
+        const response = await fetch(
+          `${API_URL}/api/reviews/provider/${providerId}`
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Unable to load reviews."
+          );
+        }
+
+        if (!cancelled) {
+          setReviews(
+            Array.isArray(result.reviews) ? result.reviews : []
+          );
+          setAverageRating(
+            Number(result.averageRating) || 0
+          );
+          setTotalReviews(
+            Number(result.totalReviews) || 0
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setReviewError(
+            err.message || "Unable to load reviews."
+          );
+          setReviews([]);
+          setAverageRating(0);
+          setTotalReviews(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setReviewsLoading(false);
+        }
+      }
+    }
+
+    loadReviews();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [providerId]);
+
+  // -----------------------------
+  // Load favourite status
+  // -----------------------------
+  async function loadFavouriteStatus() {
+    const token = localStorage.getItem("token");
+
+    if (!token || !providerId) {
+      setIsFavourite(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/customer/favourites`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        return;
+      }
+
+      const savedProviders =
+        result.favourites ??
+        result.favorites ??
+        result.providers ??
+        [];
+
+      const favouriteList = Array.isArray(savedProviders)
+        ? savedProviders
+        : [];
+
+      setIsFavourite(
+        favouriteList.some((item) => {
+          const id =
+            typeof item === "string"
+              ? item
+              : item.provider?._id ??
+                item.provider?.id ??
+                item._id ??
+                item.id;
+
+          return String(id) === String(providerId);
+        })
+      );
+    } catch (err) {
+      console.error("Load favourites error:", err);
+    }
+  }
+
+  useEffect(() => {
+    loadFavouriteStatus();
+  }, [providerId]);
+
+  // -----------------------------
+  // Add or remove favourite
+  // -----------------------------
+  async function toggleFavourite() {
+    setFavouriteError("");
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    if (favouriteLoading) return;
+
+    setFavouriteLoading(true);
+
+    try {
+      const method = isFavourite ? "DELETE" : "POST";
+
+      const response = await fetch(
+        `${API_URL}/api/customer/favourites/${providerId}`,
+        {
+          method,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || "Unable to update favourites."
+        );
+      }
+
+      setIsFavourite(!isFavourite);
+    } catch (err) {
+      setFavouriteError(
+        err.message || "Unable to update favourites."
+      );
+    } finally {
+      setFavouriteLoading(false);
+    }
+  }
+
+  // -----------------------------
+  // Conditional returns
+  // Keep these AFTER all hooks
+  // -----------------------------
   if (loading) {
     return (
       <main className="provider-profile-page">
         <div className="profile-state-card">
           <div className="profile-loading-spinner" />
           <h2>Loading provider profile</h2>
-          <p>Please wait while we fetch the provider details.</p>
+          <p>
+            Please wait while we fetch the provider details.
+          </p>
         </div>
       </main>
     );
@@ -150,7 +349,9 @@ export default function ProviderPublicProfile() {
         <button
           type="button"
           className="profile-back-button"
-          onClick={() => navigate("/customer/search-providers")}
+          onClick={() =>
+            navigate("/customer/search-providers")
+          }
         >
           <ArrowLeft size={18} />
           Back to providers
@@ -160,12 +361,16 @@ export default function ProviderPublicProfile() {
           <div className="profile-state-icon">
             <UserRound size={28} />
           </div>
+
           <h2>Profile unavailable</h2>
           <p>{error || "Provider profile not found."}</p>
+
           <button
             type="button"
             className="profile-primary-button"
-            onClick={() => navigate("/customer/search-providers")}
+            onClick={() =>
+              navigate("/customer/search-providers")
+            }
           >
             Find other providers
           </button>
@@ -174,6 +379,10 @@ export default function ProviderPublicProfile() {
     );
   }
 
+  // -----------------------------
+  // Derived provider information
+  // Only access provider after the guards
+  // -----------------------------
   const workingDays = Array.isArray(provider.workingHours)
     ? provider.workingHours
     : [];
@@ -185,14 +394,23 @@ export default function ProviderPublicProfile() {
     provider.state,
   ]
     .filter(Boolean)
-    .filter((value, index, values) => values.indexOf(value) === index)
+    .filter(
+      (value, index, values) =>
+        values.indexOf(value) === index
+    )
     .join(", ");
 
-  const skills = Array.isArray(provider.skills) ? provider.skills : [];
+  const skills = Array.isArray(provider.skills)
+    ? provider.skills
+    : [];
+
   const languages = Array.isArray(provider.languages)
     ? provider.languages
     : [];
-  const servicePincodes = Array.isArray(provider.servicePincodes)
+
+  const servicePincodes = Array.isArray(
+    provider.servicePincodes
+  )
     ? provider.servicePincodes
     : [];
 
@@ -203,146 +421,23 @@ export default function ProviderPublicProfile() {
 
   const photoUrl = getPhotoUrl(provider.profilePhoto);
 
+  const summaryRating = Math.max(
+    0,
+    Math.min(5, Math.round(Number(averageRating) || 0))
+  );
 
-
-
-async function loadReviews() {
-  if (!providerId) return;
-
-  setReviewsLoading(true);
-  setReviewError("");
-
-  try {
-    const response = await fetch(
-      `${API_URL}/api/reviews/provider/${providerId}`
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Unable to load reviews.");
-    }
-
-    setReviews(result.reviews || []);
-    setAverageRating(Number(result.averageRating) || 0);
-    setTotalReviews(Number(result.totalReviews) || 0);
-  } catch (error) {
-    setReviewError(error.message || "Unable to load reviews.");
-  } finally {
-    setReviewsLoading(false);
-  }
-}
-
-useEffect(() => {
-  loadReviews();
-}, [providerId]);
-
-async function loadFavouriteStatus() {
-  const token = localStorage.getItem("token");
-
-  if (!token || !providerId) return;
-
-  try {
-    const response = await fetch(
-      `${API_URL}/api/customer/favourites`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) return;
-
-    // Supports common response property names.
-    const savedProviders =
-      result.favourites ??
-      result.favorites ??
-      result.providers ??
-      [];
-
-    setIsFavourite(
-      savedProviders.some((item) => {
-        const id =
-          typeof item === "string"
-            ? item
-            : item.provider?._id ??
-              item.provider?.id ??
-              item._id ??
-              item.id;
-
-        return String(id) === String(providerId);
-      })
-    );
-  } catch (error) {
-    console.error("Load favourites error:", error);
-  }
-}
-
-async function toggleFavourite() {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    navigate("/login");
-    return;
-  }
-
-  setFavouriteLoading(true);
-  setFavouriteError("");
-
-  try {
-    const method = isFavourite ? "DELETE" : "POST";
-
-    const response = await fetch(
-      `${API_URL}/api/customer/favourites/${providerId}`,
-      {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Unable to update favourites.");
-    }
-
-    setIsFavourite(!isFavourite);
-  } catch (error) {
-    setFavouriteError(error.message || "Unable to update favourites.");
-  } finally {
-    setFavouriteLoading(false);
-  }
-}
-
-
-useEffect(() => {
-  loadFavouriteStatus();
-}, [providerId]);
-
-
-
-
-
-
-
-
-
-
-
-
-
+  // -----------------------------
+  // Main JSX
+  // -----------------------------
   return (
     <main className="provider-profile-page">
       <div className="provider-profile-container">
         <button
           type="button"
           className="profile-back-button"
-          onClick={() => navigate("/customer/search-providers")}
+          onClick={() =>
+            navigate("/customer/search-providers")
+          }
         >
           <ArrowLeft size={18} />
           <span>Back to providers</span>
@@ -361,11 +456,17 @@ useEffect(() => {
                 />
               ) : (
                 <div className="provider-avatar-placeholder">
-                  <UserRound size={48} strokeWidth={1.5} />
+                  <UserRound
+                    size={48}
+                    strokeWidth={1.5}
+                  />
                 </div>
               )}
 
-              <span className="provider-avatar-check" title="Provider profile">
+              <span
+                className="provider-avatar-check"
+                title="Provider profile"
+              >
                 <CheckCircle2 size={19} />
               </span>
             </div>
@@ -376,16 +477,20 @@ useEffect(() => {
                   <span className="provider-status-dot" />
                   Accepting bookings
                 </span>
+
                 <span className="provider-profile-label">
                   <ShieldCheck size={15} />
                   Provider profile
                 </span>
               </div>
 
-              <h1>{provider.fullName || "Service Provider"}</h1>
+              <h1>
+                {provider.fullName || "Service Provider"}
+              </h1>
 
               <p className="provider-hero-category">
-                {provider.serviceCategory || "Professional Services"}
+                {provider.serviceCategory ||
+                  "Professional Services"}
               </p>
 
               {location && (
@@ -404,10 +509,17 @@ useEffect(() => {
               <span className="provider-fact-icon">
                 <IndianRupee size={19} />
               </span>
+
               <div>
-                <span className="provider-fact-label">Starting price</span>
+                <span className="provider-fact-label">
+                  Starting price
+                </span>
+
                 <strong>
-                  ₹{Number(provider.startingPrice || 0).toLocaleString("en-IN")}
+                  ₹
+                  {Number(
+                    provider.startingPrice || 0
+                  ).toLocaleString("en-IN")}
                 </strong>
               </div>
             </div>
@@ -416,12 +528,18 @@ useEffect(() => {
               <span className="provider-fact-icon">
                 <BriefcaseBusiness size={19} />
               </span>
+
               <div>
-                <span className="provider-fact-label">Experience</span>
+                <span className="provider-fact-label">
+                  Experience
+                </span>
+
                 <strong>
                   {provider.experience != null
                     ? `${provider.experience} ${
-                        Number(provider.experience) === 1 ? "year" : "years"
+                        Number(provider.experience) === 1
+                          ? "year"
+                          : "years"
                       }`
                     : "Not specified"}
                 </strong>
@@ -432,8 +550,12 @@ useEffect(() => {
               <span className="provider-fact-icon">
                 <Navigation size={19} />
               </span>
+
               <div>
-                <span className="provider-fact-label">Service radius</span>
+                <span className="provider-fact-label">
+                  Service radius
+                </span>
+
                 <strong>
                   {provider.serviceRadiusKm != null
                     ? `${provider.serviceRadiusKm} km`
@@ -453,20 +575,29 @@ useEffect(() => {
                 <span className="provider-section-icon">
                   <BriefcaseBusiness size={20} />
                 </span>
+
                 <div>
                   <h2>About this provider</h2>
-                  <p>Get to know your service professional</p>
+                  <p>
+                    Get to know your service professional
+                  </p>
                 </div>
               </div>
 
-              <p className="provider-description">{description}</p>
+              <p className="provider-description">
+                {description}
+              </p>
 
               {skills.length > 0 && (
                 <div className="provider-skills-block">
                   <h3>Skills and services</h3>
+
                   <div className="provider-skills-list">
                     {skills.map((skill, index) => (
-                      <span className="provider-skill-chip" key={`${skill}-${index}`}>
+                      <span
+                        className="provider-skill-chip"
+                        key={`${skill}-${index}`}
+                      >
                         <CheckCircle2 size={14} />
                         {skill}
                       </span>
@@ -478,8 +609,11 @@ useEffect(() => {
               {languages.length > 0 && (
                 <div className="provider-inline-detail">
                   <Languages size={18} />
+
                   <div>
-                    <span className="provider-detail-label">Languages</span>
+                    <span className="provider-detail-label">
+                      Languages
+                    </span>
                     <p>{languages.join(", ")}</p>
                   </div>
                 </div>
@@ -492,9 +626,12 @@ useEffect(() => {
                 <span className="provider-section-icon">
                   <CalendarDays size={20} />
                 </span>
+
                 <div>
                   <h2>Working hours</h2>
-                  <p>Check the provider's usual schedule</p>
+                  <p>
+                    Check the provider's usual schedule
+                  </p>
                 </div>
               </div>
 
@@ -507,7 +644,9 @@ useEffect(() => {
                   {workingDays.map((day, index) => (
                     <div
                       className={`provider-hours-row ${
-                        day.isWorking ? "" : "provider-hours-closed"
+                        day.isWorking
+                          ? ""
+                          : "provider-hours-closed"
                       }`}
                       key={day.day || index}
                     >
@@ -525,16 +664,21 @@ useEffect(() => {
                             </span>
                           </>
                         ) : (
-                          <span className="provider-closed-label">Closed</span>
+                          <span className="provider-closed-label">
+                            Closed
+                          </span>
                         )}
                       </div>
 
-                      {day.isWorking && day.breakStart && day.breakEnd && (
-                        <span className="provider-hours-break">
-                          Break: {formatTime(day.breakStart)} –{" "}
-                          {formatTime(day.breakEnd)}
-                        </span>
-                      )}
+                      {day.isWorking &&
+                        day.breakStart &&
+                        day.breakEnd && (
+                          <span className="provider-hours-break">
+                            Break:{" "}
+                            {formatTime(day.breakStart)} –{" "}
+                            {formatTime(day.breakEnd)}
+                          </span>
+                        )}
                     </div>
                   ))}
                 </div>
@@ -547,9 +691,12 @@ useEffect(() => {
                 <span className="provider-section-icon">
                   <Navigation size={20} />
                 </span>
+
                 <div>
                   <h2>Service details</h2>
-                  <p>More information about service availability</p>
+                  <p>
+                    More information about service availability
+                  </p>
                 </div>
               </div>
 
@@ -558,9 +705,16 @@ useEffect(() => {
                   <span className="provider-detail-tile-icon">
                     <IndianRupee size={17} />
                   </span>
-                  <span className="provider-detail-label">Starting price</span>
+
+                  <span className="provider-detail-label">
+                    Starting price
+                  </span>
+
                   <strong>
-                    ₹{Number(provider.startingPrice || 0).toLocaleString("en-IN")}
+                    ₹
+                    {Number(
+                      provider.startingPrice || 0
+                    ).toLocaleString("en-IN")}
                   </strong>
                 </div>
 
@@ -568,7 +722,11 @@ useEffect(() => {
                   <span className="provider-detail-tile-icon">
                     <Navigation size={17} />
                   </span>
-                  <span className="provider-detail-label">Service radius</span>
+
+                  <span className="provider-detail-label">
+                    Service radius
+                  </span>
+
                   <strong>
                     {provider.serviceRadiusKm != null
                       ? `${provider.serviceRadiusKm} km`
@@ -580,7 +738,11 @@ useEffect(() => {
                   <span className="provider-detail-tile-icon">
                     <Timer size={17} />
                   </span>
-                  <span className="provider-detail-label">Appointment</span>
+
+                  <span className="provider-detail-label">
+                    Appointment
+                  </span>
+
                   <strong>
                     {provider.appointmentDuration != null
                       ? `${provider.appointmentDuration} minutes`
@@ -592,7 +754,11 @@ useEffect(() => {
                   <span className="provider-detail-tile-icon">
                     <Clock size={17} />
                   </span>
-                  <span className="provider-detail-label">Booking notice</span>
+
+                  <span className="provider-detail-label">
+                    Booking notice
+                  </span>
+
                   <strong>
                     {provider.minimumBookingNoticeHours != null
                       ? `${provider.minimumBookingNoticeHours} hours`
@@ -601,28 +767,34 @@ useEffect(() => {
                 </div>
               </div>
 
-              {(provider.pincode || servicePincodes.length > 0) && (
+              {(provider.pincode ||
+                servicePincodes.length > 0) && (
                 <div className="provider-pincode-block">
                   <h3>Service PIN codes</h3>
 
                   {provider.pincode && (
                     <p>
-                      Registered PIN code: <strong>{provider.pincode}</strong>
+                      Registered PIN code:{" "}
+                      <strong>{provider.pincode}</strong>
                     </p>
                   )}
 
                   {servicePincodes.length > 0 && (
                     <div className="provider-pincode-list">
-                      {servicePincodes.map((pincode, index) => (
-                        <span key={`${pincode}-${index}`}>{pincode}</span>
-                      ))}
+                      {servicePincodes.map(
+                        (pincode, index) => (
+                          <span key={`${pincode}-${index}`}>
+                            {pincode}
+                          </span>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
               )}
             </section>
 
-
+            {/* Customer reviews */}
             <section
               className="provider-info-card"
               id="provider-reviews"
@@ -634,19 +806,27 @@ useEffect(() => {
 
                 <div>
                   <h2>Customer Reviews</h2>
-                  <p>Feedback from customers who booked this provider</p>
+                  <p>
+                    Feedback from customers who booked this
+                    provider
+                  </p>
                 </div>
               </div>
 
               <div className="provider-review-summary">
                 <strong>
-                  {averageRating.toFixed(1)}
+                  {(Number(averageRating) || 0).toFixed(1)}
                 </strong>
 
                 <div>
-                  <div className="provider-review-stars" aria-label={`${averageRating.toFixed(1)} out of 5 stars`}>
-                    {"★".repeat(Math.round(averageRating))}
-                    {"☆".repeat(5 - Math.round(averageRating))}
+                  <div
+                    className="provider-review-stars"
+                    aria-label={`${(Number(
+                      averageRating
+                    ) || 0).toFixed(1)} out of 5 stars`}
+                  >
+                    {"★".repeat(summaryRating)}
+                    {"☆".repeat(5 - summaryRating)}
                   </div>
 
                   <p>
@@ -663,43 +843,62 @@ useEffect(() => {
               ) : reviews.length === 0 ? (
                 <div className="provider-empty-note">
                   <MessageCircle size={24} />
-                  <p>No reviews yet. Be the first customer to share feedback after completing a booking.</p>
+                  <p>
+                    No reviews yet. Be the first customer to
+                    share feedback after completing a booking.
+                  </p>
                 </div>
               ) : (
                 <div className="provider-reviews-list">
-                  {reviews.map((review) => (
-                    <article
-                      className="provider-review-item"
-                      key={review._id}
-                    >
-                      <div className="provider-review-top">
-                        <strong>
-                          {review.customer?.fullName || "Customer"}
-                        </strong>
+                  {reviews.map((review, index) => {
+                    const rating = Math.max(
+                      0,
+                      Math.min(
+                        5,
+                        Math.round(Number(review.rating) || 0)
+                      )
+                    );
 
-                        <span className="provider-review-stars">
-                          {"★".repeat(review.rating)}
-                          {"☆".repeat(5 - review.rating)}
-                        </span>
-                      </div>
+                    return (
+                      <article
+                        className="provider-review-item"
+                        key={review._id || index}
+                      >
+                        <div className="provider-review-top">
+                          <strong>
+                            {review.customer?.fullName ||
+                              "Customer"}
+                          </strong>
 
-                      <p className="provider-review-date">
-                        {review.createdAt
-                          ? new Date(review.createdAt).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : ""}
-                      </p>
+                          <span
+                            className="provider-review-stars"
+                            aria-label={`${rating} out of 5 stars`}
+                          >
+                            {"★".repeat(rating)}
+                            {"☆".repeat(5 - rating)}
+                          </span>
+                        </div>
 
-                      {review.comment && (
-                        <p className="provider-review-comment">
-                          {review.comment}
+                        <p className="provider-review-date">
+                          {review.createdAt
+                            ? new Date(
+                                review.createdAt
+                              ).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : ""}
                         </p>
-                      )}
-                    </article>
-                  ))}
+
+                        {review.comment && (
+                          <p className="provider-review-comment">
+                            {review.comment}
+                          </p>
+                        )}
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -714,15 +913,20 @@ useEffect(() => {
               </span>
 
               <h2>Book this provider</h2>
+
               <p>
-                Review the service details and continue to choose your booking
-                preferences.
+                Review the service details and continue to
+                choose your booking preferences.
               </p>
 
               <div className="provider-booking-price">
                 <span>Starting from</span>
+
                 <strong>
-                  ₹{Number(provider.startingPrice || 0).toLocaleString("en-IN")}
+                  ₹
+                  {Number(
+                    provider.startingPrice || 0
+                  ).toLocaleString("en-IN")}
                 </strong>
               </div>
 
@@ -737,13 +941,17 @@ useEffect(() => {
 
               <div className="provider-booking-note">
                 <ShieldCheck size={17} />
-                <span>Review the booking details before confirming.</span>
+                <span>
+                  Review the booking details before confirming.
+                </span>
               </div>
             </section>
 
             <section className="provider-connect-card">
               <h3>Keep this provider handy</h3>
-              <p>Save the provider or check customer feedback.</p>
+              <p>
+                Save the provider or check customer feedback.
+              </p>
 
               <button
                 type="button"
@@ -753,8 +961,11 @@ useEffect(() => {
               >
                 <Heart
                   size={19}
-                  fill={isFavourite ? "currentColor" : "none"}
+                  fill={
+                    isFavourite ? "currentColor" : "none"
+                  }
                 />
+
                 <span>
                   {favouriteLoading
                     ? "Updating..."
@@ -772,13 +983,16 @@ useEffect(() => {
                 type="button"
                 className="provider-secondary-action"
                 onClick={() =>
-                  document.getElementById("provider-reviews")?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                  })
+                  document
+                    .getElementById("provider-reviews")
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    })
                 }
               >
                 <MessageCircle size={19} />
+
                 <span>
                   Customer Reviews ({totalReviews})
                 </span>

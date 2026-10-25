@@ -9,16 +9,19 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+
     provider: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Provider",
       required: true,
     },
+
     rating: {
       type: Number,
       required: true,
@@ -29,6 +32,7 @@ const reviewSchema = new mongoose.Schema(
         message: "Rating must be a whole number from 1 to 5.",
       },
     },
+
     comment: {
       type: String,
       trim: true,
