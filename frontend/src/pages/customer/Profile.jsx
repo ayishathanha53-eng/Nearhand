@@ -15,7 +15,6 @@ import {
 import "./Profile.css";
 
 const API_URL = "http://localhost:5000/api/customer";
-
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({

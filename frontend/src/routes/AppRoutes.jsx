@@ -49,6 +49,9 @@ import AdminDashboard from "../pages/admin/Dashboard";
 import ProviderDetails from "../pages/admin/ProviderDetails";
 import AdminProtectedRoute from "../pages/admin/Protected";
 
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -57,6 +60,10 @@ export default function AppRoutes() {
       <Route path="/services" element={<Services />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+
+      {/* Forgot PassWord */}
+      <Route path="/forgot-password" element={<ForgotPassword />}/>
+      <Route path="/reset-password" element={<ResetPassword />}/>
 
       {/* Authentication */}
       <Route path="/login" element={<Login />} />

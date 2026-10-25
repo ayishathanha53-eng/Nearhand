@@ -1132,7 +1132,80 @@
     font-size: 26px;
   }
 }
+.provider-review-summary {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  margin: 20px 0;
+  background: #f8fafc;
+  border: 1px solid #e5eaf0;
+  border-radius: 14px;
+}
 
+.provider-review-summary > strong {
+  font-size: 40px;
+  line-height: 1;
+  color: #172033;
+}
+
+.provider-review-summary p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.provider-review-stars {
+  color: #e9a008;
+  letter-spacing: 2px;
+  font-size: 17px;
+}
+
+.provider-reviews-list {
+  display: grid;
+  gap: 14px;
+}
+
+.provider-review-item {
+  padding: 18px;
+  border: 1px solid #e5eaf0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.provider-review-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.provider-review-top strong {
+  color: #172033;
+}
+
+.provider-review-date {
+  margin: 8px 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.provider-review-comment {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.provider-favourite-action:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+#provider-reviews {
+  scroll-margin-top: 24px;
+}
 /* ==========================================
    REDUCED MOTION ACCESSIBILITY
 ========================================== */

@@ -181,7 +181,14 @@ pincode: {
       min: 1,
       max: 200,
     },
-
+    resetPasswordToken: {
+      type: String,
+      default: undefined,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: undefined,
+    },
     // PROFILE COMPLETION AND CUSTOMER VISIBILITY
     profileCompleted: {
       type: Boolean,

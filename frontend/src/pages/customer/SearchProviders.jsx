@@ -8,6 +8,8 @@ import {
   BriefcaseBusiness,
   RefreshCw,
   UserRound,
+  Heart,
+  Star,
 } from "lucide-react";
 import "./SearchProviders.css";
 
@@ -22,6 +24,9 @@ export default function SearchProviders() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState(new Set());
+  const [favoriteLoading, setFavoriteLoading] = useState({});
+
 
   async function fetchProviders(searchTerm = "", pin = "") {
     const token = localStorage.getItem("token");
@@ -81,10 +86,101 @@ export default function SearchProviders() {
       setLoading(false);
     }
   }
+async function fetchFavorites() {
+  const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    fetchProviders();
-  }, []);
+  if (!token) return;
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/customer/favourites`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Unable to load favourites.");
+    }
+
+    const ids = (data.favourites || [])
+      .map((item) => item.provider?._id)
+      .filter(Boolean);
+
+    setFavoriteIds(new Set(ids));
+  } catch (error) {
+    console.error("Fetch favourites error:", error);
+  }
+}
+
+async function toggleFavorite(event, provider) {
+  event.stopPropagation();
+
+  const providerId = provider._id || provider.id;
+
+  if (!providerId || favoriteLoading[providerId]) return;
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  const isFavorite = favoriteIds.has(providerId);
+
+  setFavoriteLoading((prev) => ({
+    ...prev,
+    [providerId]: true,
+  }));
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/customer/favourites/${providerId}`,
+      {
+        method: isFavorite ? "DELETE" : "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Unable to update favourite.");
+    }
+
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+
+      if (isFavorite) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+
+      return next;
+    });
+  } catch (error) {
+    setError(error.message || "Unable to update favourite.");
+  } finally {
+    setFavoriteLoading((prev) => ({
+      ...prev,
+      [providerId]: false,
+    }));
+  }
+}
+
+
+useEffect(() => {
+  fetchProviders();
+  fetchFavorites();
+}, []);
 
   function handleSearch(event) {
     event.preventDefault();
@@ -236,6 +332,35 @@ export default function SearchProviders() {
                 aria-label={`View ${provider.fullName || "provider"} profile`}
               >
                 <div className="customer-provider-card-top">
+                  <button
+                    type="button"
+                    className={`provider-favorite-btn ${
+                      favoriteIds.has(provider._id || provider.id)
+                        ? "is-favorite"
+                        : ""
+                    }`}
+                    onClick={(event) => toggleFavorite(event, provider)}
+                    disabled={!!favoriteLoading[provider._id || provider.id]}
+                    aria-label={
+                      favoriteIds.has(provider._id || provider.id)
+                        ? "Remove from favourites"
+                        : "Add to favourites"
+                    }
+                    title={
+                      favoriteIds.has(provider._id || provider.id)
+                        ? "Remove from favourites"
+                        : "Add to favourites"
+                    }
+                  >
+                    <Heart
+                      size={20}
+                      fill={
+                        favoriteIds.has(provider._id || provider.id)
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </button>
                   <div className="customer-provider-avatar">
                     {provider.profilePhoto ? (
                       <img
