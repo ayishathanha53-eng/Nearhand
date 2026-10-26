@@ -584,6 +584,22 @@ const submitInterviewResult = async (result) => {
       </button>
     )}
 
+
+    
+{provider.verificationStatus !== "Rejected" &&
+  provider.verificationStatus !== "Approved" && (
+    <button
+      type="button"
+      className="provider-action-btn provider-approve-btn"
+      onClick={approveProvider}
+      disabled={busy || interviewLoading}
+    >
+      <CheckCircle2 size={17} />
+      {busy ? "Approving..." : "Approve Application"}
+    </button>
+)}
+
+
   {provider.interviewStatus === "Scheduled" && (
     <>
       <button
