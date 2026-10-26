@@ -3,14 +3,22 @@ const express = require("express");
 const multer = require("multer");
 const cloudinary = require("../config/cloudinary");
 const User = require("../models/User");
+const Provider = require("../models/Provider");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// Select the correct database model based on the logged-in user's role.
+function getAccountModel(role) {
+  if (role === "customer") return User;
+  if (role === "provider") return Provider;
+  return null;
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB maximum
+    fileSize: 5 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
@@ -35,7 +43,12 @@ function uploadToCloudinary(buffer) {
       {
         folder: "nearhand/profile-photos",
         transformation: [
-          { width: 500, height: 500, crop: "fill", gravity: "face" },
+          {
+            width: 500,
+            height: 500,
+            crop: "fill",
+            gravity: "face",
+          },
         ],
         resource_type: "image",
       },
@@ -54,10 +67,10 @@ router.put(
   "/photo",
   authMiddleware,
   (req, res, next) => {
-    if (req.user.role !== "customer") {
+    if (!getAccountModel(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: "Only customers can update profile photos.",
+        message: "Unsupported account type.",
       });
     }
 
@@ -86,40 +99,41 @@ router.put(
         });
       }
 
-      const user = await User.findById(req.user.id);
+      const Account = getAccountModel(req.user.role);
+      const account = await Account.findById(req.user.id);
 
-      if (!user) {
+      if (!account) {
         return res.status(404).json({
           success: false,
-          message: "Customer account not found.",
+          message: "Account not found.",
         });
       }
 
       const result = await uploadToCloudinary(req.file.buffer);
       uploadedPublicId = result.public_id;
 
-      const oldPublicId = user.profilePhotoPublicId;
+      const oldPublicId = account.profilePhotoPublicId;
 
-      user.profilePhoto = result.secure_url;
-      user.profilePhotoPublicId = result.public_id;
-      await user.save();
+      account.profilePhoto = result.secure_url;
+      account.profilePhotoPublicId = result.public_id;
 
-      // Delete the old image only after the new one is saved.
+      await account.save();
+
+      // Delete the previous image only after saving the new image.
       if (oldPublicId && oldPublicId !== result.public_id) {
         try {
           await cloudinary.uploader.destroy(oldPublicId);
-        } catch (deleteError) {
-          console.error("Old profile photo cleanup failed:", deleteError);
+        } catch (error) {
+          console.error("Old profile photo cleanup failed:", error);
         }
       }
 
       return res.json({
         success: true,
         message: "Profile photo updated successfully.",
-        profilePhoto: user.profilePhoto,
+        profilePhoto: account.profilePhoto,
       });
     } catch (error) {
-      // Avoid leaving a newly uploaded image behind if saving fails.
       if (uploadedPublicId) {
         try {
           await cloudinary.uploader.destroy(uploadedPublicId);
@@ -137,38 +151,42 @@ router.put(
     }
   }
 );
+
 // GET /api/profile/me
 router.get("/me", authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== "customer") {
+    const Account = getAccountModel(req.user.role);
+
+    if (!Account) {
       return res.status(403).json({
         success: false,
-        message: "Customer account required.",
+        message: "Unsupported account type.",
       });
     }
 
-    const user = await User.findById(req.user.id)
+    const account = await Account.findById(req.user.id)
       .select("fullName profilePhoto")
       .lean();
 
-    if (!user) {
+    if (!account) {
       return res.status(404).json({
         success: false,
-        message: "Customer account not found.",
+        message: "Account not found.",
       });
     }
 
     return res.json({
       success: true,
-      user,
+      user: account,
     });
   } catch (error) {
-    console.error("Load customer profile error:", error);
+    console.error("Load profile error:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Unable to load customer profile.",
+      message: "Unable to load profile.",
     });
   }
 });
+
 module.exports = router;

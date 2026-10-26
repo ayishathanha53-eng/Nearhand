@@ -264,18 +264,7 @@ console.log("Rejection reason:", result.provider?.rejectionReason);
             aria-label="Open my provider profile"
             title="My Profile"
           >
-            {provider.profilePhoto ? (
-              <img
-                src={
-                  provider.profilePhoto.startsWith("http")
-                    ? provider.profilePhoto
-                    : `${API_URL}${provider.profilePhoto}`
-                }
-                alt="My profile"
-              />
-            ) : (
-              (provider.fullName || "P").charAt(0).toUpperCase()
-            )}
+           {(provider.fullName || "P").charAt(0).toUpperCase()}
           </button>
         </div>
       </header>

@@ -89,8 +89,10 @@ pincode: {
     about: { type: String, required: true },
 
     // DOCUMENTS
-    profilePhoto: { type: String, default: "" },
-    idProof: { type: String, default: "" },
+    // DOCUMENTS
+profilePhoto: { type: String, default: "" },
+profilePhotoPublicId: { type: String, default: "" },
+idProof: { type: String, default: "" },
     qualificationCertificate: { type: String, default: "" },
     experienceCertificate: { type: String, default: "" },
 
