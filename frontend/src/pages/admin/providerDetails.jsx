@@ -35,10 +35,33 @@ export default function ProviderDetails() {
   const [interviewDate, setInterviewDate] = useState("");
 const [interviewNotes, setInterviewNotes] = useState("");
 const [interviewLoading, setInterviewLoading] = useState(false);
+const [customDialog, setCustomDialog] = useState(null);
+const [dialogAction, setDialogAction] = useState(null);
+
+
+const openDialog = (title, message, type = "info", onConfirm = null) => {
+  setCustomDialog({ title, message, type });
+  setDialogAction(() => onConfirm);
+};
+
+const closeDialog = () => {
+  setCustomDialog(null);
+  setDialogAction(null);
+};
+
+const confirmDialog = () => {
+  const action = dialogAction;
+  closeDialog();
+  if (action) action();
+};
 
 const scheduleInterview = async () => {
   if (!interviewDate) {
-    alert("Please select an interview date and time.");
+    openDialog(
+  "Interview date required",
+  "Please select an interview date and time.",
+  "warning"
+);
     return;
   }
 
@@ -66,20 +89,64 @@ const scheduleInterview = async () => {
       throw new Error(data.message || "Could not schedule interview");
     }
 
-    alert("Interview scheduled successfully.");
+    openDialog(
+  "Interview scheduled",
+  "The interview has been scheduled successfully.",
+  "success"
+);
     await loadProvider();
   } catch (error) {
-    alert(error.message);
+    openDialog("Something went wrong", error.message, "error");
   } finally {
     setInterviewLoading(false);
   }
 };
 
 const submitInterviewResult = async (result) => {
-  const confirmed = window.confirm(
-    `Are you sure you want to mark this interview as ${result}?`
-  );
+  openDialog(
+  `Confirm interview ${result.toLowerCase()}`,
+  `Are you sure you want to mark this interview as ${result}?`,
+  "confirm",
+  async () => {
+    try {
+      setInterviewLoading(true);
 
+      const response = await fetch(
+        `${API_URL}/providers/${id}/interview/result`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+          body: JSON.stringify({
+            result,
+            interviewNotes,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Could not save interview result");
+      }
+
+      openDialog(
+        "Interview result saved",
+        data.message || "The interview result was saved successfully.",
+        "success"
+      );
+
+      await loadProvider();
+    } catch (error) {
+      openDialog("Something went wrong", error.message, "error");
+    } finally {
+      setInterviewLoading(false);
+    }
+  }
+);
+return;
   if (!confirmed) return;
 
   try {
@@ -204,9 +271,33 @@ const submitInterviewResult = async (result) => {
 
 
   async function approveProvider() {
-    const confirmed = window.confirm(
-      `Approve ${provider.fullName || "this provider"}?`
-    );
+   openDialog(
+  "Approve provider",
+  `Are you sure you want to approve ${
+    provider.fullName || "this provider"
+  }?`,
+  "confirm",
+  async () => {
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const result = await api(`/providers/${id}/approve`, {
+        method: "PATCH",
+        body: JSON.stringify({}),
+      });
+
+      setProvider(result.provider);
+      setNotice(result.message || "Provider approved successfully.");
+    } catch (err) {
+      setError(err.message || "Could not approve provider.");
+    } finally {
+      setBusy(false);
+    }
+  }
+);
+return;
 
     if (!confirmed) return;
 
@@ -495,6 +586,73 @@ const submitInterviewResult = async (result) => {
                   <span>View document ↗</span>
                 </a>
               ))}
+
+              {customDialog && (
+  <div
+    className="nh-dialog-overlay"
+    onMouseDown={(event) => {
+      if (
+        event.target === event.currentTarget &&
+        customDialog.type !== "confirm"
+      ) {
+        closeDialog();
+      }
+    }}
+  >
+    <section
+      className="nh-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="nh-dialog-title"
+      aria-describedby="nh-dialog-message"
+    >
+      <div className={`nh-dialog-icon ${customDialog.type}`}>
+        {customDialog.type === "success" ? (
+          <CheckCircle2 size={28} />
+        ) : customDialog.type === "error" ||
+          customDialog.type === "warning" ? (
+          <XCircle size={28} />
+        ) : (
+          <ShieldCheck size={28} />
+        )}
+      </div>
+
+      <h2 id="nh-dialog-title">{customDialog.title}</h2>
+
+      <p id="nh-dialog-message">{customDialog.message}</p>
+
+      <div className="nh-dialog-actions">
+        {customDialog.type === "confirm" && (
+          <button
+            type="button"
+            className="nh-dialog-btn nh-dialog-cancel"
+            onClick={closeDialog}
+          >
+            Cancel
+          </button>
+        )}
+
+        <button
+          type="button"
+          autoFocus
+          className={`nh-dialog-btn ${
+            customDialog.type === "confirm"
+              ? "nh-dialog-confirm"
+              : "nh-dialog-primary"
+          }`}
+          onClick={
+            customDialog.type === "confirm"
+              ? confirmDialog
+              : closeDialog
+          }
+        >
+          {customDialog.type === "confirm" ? "Confirm" : "Got it"}
+        </button>
+      </div>
+    </section>
+  </div>
+)}
+
             </div>
           ) : (
             <p>No documents have been uploaded.</p>
