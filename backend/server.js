@@ -45,6 +45,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/favourites", favouriteRoutes);
 app.use("/api/profile", require("./routes/profilePhoto"));
 app.use("/api/password-reset", require("./routes/passwordReset"));
+app.use("/api/admin", adminRoutes);
 
 // Basic test route
 app.get("/", (req, res) => {

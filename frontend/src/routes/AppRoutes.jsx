@@ -177,33 +177,17 @@ export default function AppRoutes() {
       />
 
       {/* Admin pages */}
-    <Route
-  path="/admin/login"
-  element={<AdminLogin />}
-/>
+ 
+{/* Admin pages */}
+<Route path="/admin/login" element={<AdminLogin />} />
 
 <Route element={<AdminProtectedRoute />}>
-  <Route
-    path="/admin/dashboard"
-    element={<AdminDashboard />}
-  />
-
-  <Route
-    path="/admin/provider/:id"
-    element={<ProviderDetails />}
-  />
+  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+  <Route path="/admin/provider/:id" element={<ProviderDetails />} />
+  <Route path="/admin/providers/:id" element={<ProviderDetails />} />
+  <Route path="/admin/reviews" element={<AdminReviews />} />
 </Route>
 
-
-      <Route
-        path="/customer/provider/:providerId"
-        element={<ProviderPublicProfile />}
-      />
-      <Route path="/admin/reviews" element={<AdminReviews />} />
-      <Route
-        path="/admin/providers/:id"
-        element={<ProviderDetails />}
-      />
     </Routes>
   );
 }
