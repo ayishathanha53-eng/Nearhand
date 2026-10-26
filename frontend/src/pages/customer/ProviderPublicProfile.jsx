@@ -25,7 +25,7 @@ import "./ProviderPublicProfile.css";
 const API_URL = "http://localhost:5000";
 
 export default function ProviderPublicProfile() {
-  const { providerId } = useParams();
+ const { id: providerId } = useParams();
   const navigate = useNavigate();
 
   // -----------------------------

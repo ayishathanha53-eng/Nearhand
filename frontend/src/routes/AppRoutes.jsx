@@ -176,6 +176,11 @@ export default function AppRoutes() {
         element={<CustomerNotifications />}
       />
 
+      <Route
+  path="/customer/provider/:id"
+  element={<ProviderPublicProfile />}
+/>
+
       {/* Admin pages */}
  
 {/* Admin pages */}
