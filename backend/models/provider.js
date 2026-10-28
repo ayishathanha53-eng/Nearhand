@@ -89,8 +89,10 @@ pincode: {
     about: { type: String, required: true },
 
     // DOCUMENTS
-    profilePhoto: { type: String, default: "" },
-    idProof: { type: String, default: "" },
+    // DOCUMENTS
+profilePhoto: { type: String, default: "" },
+profilePhotoPublicId: { type: String, default: "" },
+idProof: { type: String, default: "" },
     qualificationCertificate: { type: String, default: "" },
     experienceCertificate: { type: String, default: "" },
 
@@ -181,7 +183,14 @@ pincode: {
       min: 1,
       max: 200,
     },
-
+    resetPasswordToken: {
+      type: String,
+      default: undefined,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: undefined,
+    },
     // PROFILE COMPLETION AND CUSTOMER VISIBILITY
     profileCompleted: {
       type: Boolean,

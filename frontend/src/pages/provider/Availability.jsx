@@ -267,12 +267,15 @@ const removeServicePincode = (pincode) => {
       }
 
       setProvider((prev) => ({
-        ...prev,
-        ...(data.provider || {}),
-        profileCompleted: true,
-        acceptingBookings: false,
-        isAvailableForCustomers: false,
-      }));
+  ...prev,
+  ...(data.provider || {}),
+  profileCompleted: true,
+  profileCompletion: 100,
+  acceptingBookings: prev?.acceptingBookings ?? false,
+  isAvailableForCustomers: prev?.isAvailableForCustomers ?? false,
+}));
+
+setMessage("Your service setup has been saved successfully. Profile completion: 100%.");
 
       setMessage("Your service setup has been saved successfully.");
     } catch (err) {

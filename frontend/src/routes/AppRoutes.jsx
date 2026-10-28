@@ -21,9 +21,7 @@ import BookingDetails from "../pages/customer/BookingDetails";
 import IndividualBooking from "../pages/customer/IndividualBooking";
 import BookingHistory from "../pages/customer/BookingHistory";
 import BookService from "../pages/customer/BookService";
-import Chat from "../pages/customer/Chat";
 import Favorites from "../pages/customer/Favorites";
-import LiveTracking from "../pages/customer/LiveTracking";
 import Payment from "../pages/customer/Payment";
 import Profile from "../pages/customer/Profile";
 import SearchProviders from "../pages/customer/SearchProviders";
@@ -37,7 +35,6 @@ import Availability from "../pages/provider/Availability";
 import ProviderChat from "../pages/provider/Chat";
 import Earnings from "../pages/provider/Earnings";
 import MyJobs from "../pages/provider/MyJobs";
-import Portfolio from "../pages/provider/Portfolio";
 import ProviderProfile from "../pages/provider/Profile";
 import Reviews from "../pages/provider/Reviews";
 import ProviderNotifications from "../pages/provider/Notifications";
@@ -49,6 +46,10 @@ import AdminDashboard from "../pages/admin/Dashboard";
 import ProviderDetails from "../pages/admin/ProviderDetails";
 import AdminProtectedRoute from "../pages/admin/Protected";
 
+import AdminReviews from "../pages/admin/Reviews";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -57,6 +58,10 @@ export default function AppRoutes() {
       <Route path="/services" element={<Services />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+
+      {/* Forgot PassWord */}
+      <Route path="/forgot-password" element={<ForgotPassword />}/>
+      <Route path="/reset-password" element={<ResetPassword />}/>
 
       {/* Authentication */}
       <Route path="/login" element={<Login />} />
@@ -97,10 +102,7 @@ export default function AppRoutes() {
         path="/provider/chat"
         element={<ProviderChat />}
       />
-      <Route
-        path="/provider/portfolio"
-        element={<Portfolio />}
-      />
+     
       <Route
         path="/provider/profile"
         element={<ProviderProfile />}
@@ -162,18 +164,7 @@ export default function AppRoutes() {
         path="/customer/favorites"
         element={<Favorites />}
       />
-      <Route
-        path="/customer/chat"
-        element={<Chat />}
-      />
-      <Route
-        path="/customer/live-tracking"
-        element={<LiveTracking />}
-      />
-      <Route
-        path="/customer/payment"
-        element={<Payment />}
-      />
+     
       <Route
         path="/customer/profile"
         element={<Profile />}
@@ -185,33 +176,23 @@ export default function AppRoutes() {
         element={<CustomerNotifications />}
       />
 
-      {/* Admin pages */}
-    <Route
-  path="/admin/login"
-  element={<AdminLogin />}
-/>
-
-<Route element={<AdminProtectedRoute />}>
-  <Route
-    path="/admin/dashboard"
-    element={<AdminDashboard />}
-  />
-
-  <Route
-    path="/admin/provider/:id"
-    element={<ProviderDetails />}
-  />
-</Route>
-
-
       <Route
-  path="/customer/provider/:providerId"
+  path="/customer/provider/:id"
   element={<ProviderPublicProfile />}
 />
-      <Route
-        path="/admin/providers/:id"
-        element={<ProviderDetails />}
-      />
+
+      {/* Admin pages */}
+ 
+{/* Admin pages */}
+<Route path="/admin/login" element={<AdminLogin />} />
+
+<Route element={<AdminProtectedRoute />}>
+  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+  <Route path="/admin/provider/:id" element={<ProviderDetails />} />
+  <Route path="/admin/providers/:id" element={<ProviderDetails />} />
+  <Route path="/admin/reviews" element={<AdminReviews />} />
+</Route>
+
     </Routes>
   );
 }

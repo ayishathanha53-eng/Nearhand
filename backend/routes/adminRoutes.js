@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-const Provider = require("../models/provider");
+const Provider = require("../models/Provider");
 const Complaint = require("../models/complaint");
 const adminAuth = require("../middleware/adminAuth");
 const sendInterviewEmail = require("../utils/sendInterviewEmail");
+const Review = require("../models/Review");
+
 
 // Every route in this file requires admin access.
 router.use(adminAuth);
@@ -386,6 +388,31 @@ router.patch("/complaints/:id", async (req, res) => {
     res.json({ message: "Complaint updated", complaint });
   } catch (error) {
     res.status(500).json({ message: "Could not update complaint" });
+  }
+});
+
+
+// Get all customer reviews for the admin dashboard
+router.get("/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.find()
+      .populate("customer", "name fullName email")
+      .populate("provider", "fullName email serviceCategory")
+      .populate("booking")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      reviews,
+    });
+  } catch (error) {
+    console.error("Load reviews error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Could not load customer reviews",
+    });
   }
 });
 

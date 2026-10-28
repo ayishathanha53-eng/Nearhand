@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   ShieldCheck,
   Mail,
@@ -19,6 +20,12 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const location = useLocation();
+
+const unauthorizedMessage = location.state?.unauthorized
+  ? location.state.message
+  : "";
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -77,6 +84,12 @@ export default function AdminLogin() {
         <p className="admin-login-subtitle">
           Sign in to manage provider applications.
         </p>
+
+        {unauthorizedMessage && (
+  <div role="alert" className="admin-alert admin-alert-error">
+    {unauthorizedMessage}
+  </div>
+)}
 
         <form onSubmit={handleSubmit}>
           <div className="admin-form-group">
@@ -155,3 +168,4 @@ export default function AdminLogin() {
     </main>
   );
 }
+

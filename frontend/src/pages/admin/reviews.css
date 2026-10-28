@@ -1,0 +1,287 @@
+
+.admin-reviews-page {
+  min-height: 100%;
+  padding: 30px;
+  box-sizing: border-box;
+  background: #f7f9f8;
+  color: #1d2b22;
+}
+
+.admin-reviews-heading,
+.admin-review-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.admin-reviews-heading {
+  margin-bottom: 26px;
+}
+
+.admin-reviews-heading h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.admin-reviews-heading p,
+.admin-review-list-heading p {
+  color: #718078;
+  font-size: 14px;
+}
+
+.admin-reviews-eyebrow {
+  margin-bottom: 8px;
+  color: #198754 !important;
+  font-size: 11px !important;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.admin-review-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 15px;
+  border: 1px solid #dce6df;
+  border-radius: 10px;
+  background: #fff;
+  color: #244531;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-review-button:hover {
+  background: #edf7ef;
+}
+
+.admin-review-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.admin-review-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 23px;
+  border: 1px solid #e4ebe6;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.admin-review-stat > span:first-child {
+  color: #718078;
+  font-size: 13px;
+}
+
+.admin-review-stat > strong {
+  font-size: 29px;
+}
+
+.admin-review-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #e8a32b;
+}
+
+.admin-review-stars .empty {
+  color: #dce3de;
+}
+
+.admin-review-list-section {
+  padding: 23px;
+  border: 1px solid #e5ece7;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.admin-review-list-heading {
+  margin-bottom: 20px;
+}
+
+.admin-review-list-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.admin-review-list-heading p {
+  margin-bottom: 0;
+}
+
+.admin-review-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-review-filters select {
+  max-width: 200px;
+  padding: 10px 12px;
+  border: 1px solid #dce6df;
+  border-radius: 9px;
+  background: #fff;
+  color: #34463a;
+  font-size: 13px;
+}
+
+.admin-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.admin-review-card {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  border: 1px solid #e8eee9;
+  border-radius: 13px;
+}
+
+.admin-review-avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 13px;
+  background: #e9f6ed;
+  color: #187447;
+  font-weight: 800;
+}
+
+.admin-review-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-review-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-review-top h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.admin-review-top > div:first-child > span {
+  display: block;
+  margin-top: 6px;
+  color: #879188;
+  font-size: 12px;
+}
+
+.admin-review-rating {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.admin-review-rating strong {
+  color: #6c796f;
+  font-size: 12px;
+}
+
+.admin-review-provider {
+  margin: 15px 0 0;
+  color: #198754;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-review-comment {
+  margin: 10px 0 0;
+  color: #536158;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-reviews-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 50px 20px;
+  border: 1px dashed #dce6df;
+  border-radius: 13px;
+  text-align: center;
+}
+
+.admin-reviews-state p {
+  color: #718078;
+}
+
+.admin-reviews-spinner {
+  color: #198754;
+  animation: admin-review-spin 1s linear infinite;
+}
+
+@keyframes admin-review-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 800px) {
+  .admin-reviews-page {
+    padding: 18px;
+  }
+
+  .admin-review-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-review-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-review-filters {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .admin-review-filters select {
+    flex: 1;
+    min-width: 130px;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-reviews-heading {
+    align-items: flex-start;
+  }
+
+  .admin-reviews-heading h1 {
+    font-size: 24px;
+  }
+
+  .admin-review-button {
+    padding: 10px;
+  }
+
+  .admin-review-card {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .admin-review-top {
+    flex-direction: column;
+  }
+
+  .admin-review-rating {
+    align-items: flex-start;
+  }
+}

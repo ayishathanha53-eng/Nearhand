@@ -226,12 +226,7 @@ export default function BookingHistory() {
                     </p>
                   </div>
 
-                  <div>
-                    <span style={styles.label}>Payment status</span>
-                    <p style={styles.value}>
-                      {booking.paymentStatus || "Pending"}
-                    </p>
-                  </div>
+                 
                 </div>
 
                 <div style={styles.cardFooter}>

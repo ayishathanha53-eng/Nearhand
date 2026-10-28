@@ -134,10 +134,7 @@ export default function ProviderBookingDetails() {
             <p>{booking.description || "No additional description."}</p>
           </div>
 
-          <div className="booking-detail-field">
-            <strong>Payment status</strong>
-            <p>{booking.paymentStatus || "Pending"}</p>
-          </div>
+          
 
           <button
             className="booking-detail-back"

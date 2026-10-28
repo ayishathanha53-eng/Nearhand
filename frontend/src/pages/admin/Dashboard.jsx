@@ -1,6 +1,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Reviews from "./Reviews";
 import {
   ShieldCheck,
   Users,
@@ -20,6 +21,7 @@ import {
   Menu,
   X,
   Save,
+  Star,
 } from "lucide-react";
 import "./Dashboard.css";
 
@@ -46,26 +48,48 @@ export default function AdminDashboard() {
 
   const token = localStorage.getItem("adminToken");
 
-  const api = useCallback(async (path, options = {}) => {
-    const response = await fetch(`${API_URL}${path}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${
-          localStorage.getItem("adminToken") || ""
-        }`,
-        ...(options.body ? { "Content-Type": "application/json" } : {}),
-        ...options.headers,
+
+
+  
+const api = useCallback(async (path, options = {}) => {
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${
+        localStorage.getItem("adminToken") || ""
+      }`,
+      ...(options.body
+        ? { "Content-Type": "application/json" }
+        : {}),
+      ...options.headers,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (response.status === 403 || response.status === 401) {
+    localStorage.removeItem("adminToken");
+
+    navigate("/admin/login", {
+      replace: true,
+      state: {
+        unauthorized: true,
+        message:
+          data.message ||
+          "403 Forbidden: Please log in again as an administrator.",
       },
     });
 
-    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || "Admin authentication failed.");
+  }
 
-    if (!response.ok) {
-      throw new Error(data.message || "Request failed.");
-    }
+  if (!response.ok) {
+    throw new Error(data.message || "Request failed.");
+  }
 
-    return data;
-  }, []);
+  return data;
+}, [navigate]);
+
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -373,6 +397,20 @@ export default function AdminDashboard() {
             <MessageSquareWarning size={19} />
             Complaints
           </button>
+
+
+
+ <button
+  className="admin-nav"
+  onClick={() => {
+    setSidebarOpen(false);
+    navigate("/admin/reviews");
+  }}
+>
+  <Star size={19} />
+  Reviews
+</button>
+
         </nav>
 
         <div className="admin-sidebar-bottom">

@@ -15,7 +15,22 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-
+    profilePhoto: {
+      type: String,
+      default: "",
+    },
+    profilePhotoPublicId: {
+      type: String,
+      default: "",
+    },
+    resetPasswordToken: {
+      type: String,
+      default: undefined,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: undefined,
+    },
     password: {
       type: String,
       required: true,

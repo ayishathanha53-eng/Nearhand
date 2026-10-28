@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const Provider = require("../models/provider");
+const Provider = require("../models/Provider");
 const Booking = require("../models/Booking");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
@@ -332,7 +332,9 @@ if (state !== "Kerala") {
           email: provider.email,
 
           verificationStatus:
-            provider.verificationStatus
+            provider.verificationStatus,
+
+            rejectionReason: provider.rejectionReason || "",
 
         }
 
@@ -411,6 +413,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
         serviceArea: provider.serviceArea,
         about: provider.about,
 
+        rejectionReason: provider.rejectionReason || "",
         serviceDescription: provider.serviceDescription || "",
         skills: provider.skills || [],
         languages: provider.languages || [],
@@ -667,7 +670,7 @@ if (!provider.district) {
   bufferMinutes: provider.bufferMinutes ?? 15,
   minimumBookingNoticeHours:
     provider.minimumBookingNoticeHours ?? 2,
-
+    rejectionReason: provider.rejectionReason || "",
     serviceDescription: provider.serviceDescription || "",
 skills: provider.skills || [],
 languages: provider.languages || [],

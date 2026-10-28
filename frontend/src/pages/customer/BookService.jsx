@@ -36,6 +36,8 @@ const requestedProviderId = searchParams.get("providerId") || "";
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showBookingDialog, setShowBookingDialog] = useState(false);
+const [bookingId, setBookingId] = useState("");
 
   const selectedProvider = providers.find(
     (provider) => provider._id === providerId
@@ -174,10 +176,8 @@ if (
         throw new Error(data.message || "Unable to submit booking.");
       }
 
-      setSuccess(
-        `Booking request submitted successfully! Booking ID: ${data.booking?._id || ""}`
-      );
-
+      setBookingId(data.booking?._id || "Unavailable");
+setShowBookingDialog(true);
       setBookingDate("");
       setAddress("");
       setDescription("");
@@ -343,7 +343,7 @@ if (
         />
 
         <label style={styles.label} htmlFor="description">
-          Describe your requirements
+          Describe your requirements *
         </label>
         <textarea
           id="description"
@@ -353,6 +353,7 @@ if (
           maxLength={2000}
           rows={4}
           style={styles.input}
+          required
         />
 
         <button
@@ -383,9 +384,39 @@ if (
           )}
         </button>
 
+
+        {showBookingDialog && (
+  <div style={styles.dialogOverlay}>
+    <div style={styles.dialogBox}>
+      <CheckCircle size={45} color="#167852" />
+
+      <h2 style={styles.dialogTitle}>Booking Successful!</h2>
+
+      <p style={styles.dialogMessage}>
+        Your service booking request has been submitted successfully.
+      </p>
+
+      <div style={styles.dialogBookingId}>
+        Booking ID: {bookingId}
+      </div>
+
+      <p style={styles.dialogMessage}>
+        Your booking remains pending until the service provider confirms it.
+      </p>
+
+      <button
+        type="button"
+        style={styles.dialogButton}
+        onClick={() => setShowBookingDialog(false)}
+      >
+        OK
+      </button>
+    </div>
+  </div>
+)}
+
         <p style={styles.note}>
-          Your request starts as Pending. The backend rechecks provider
-          eligibility before saving it.
+        Your service booking will remain pending until the service provider confirms your request.
         </p>
       </form>
     </main>
@@ -455,8 +486,8 @@ const styles = {
     boxShadow: "0 5px 22px rgba(24,83,56,0.05)",
   },
   sectionHeading: {
-    margin: "0 0 22px",
-    fontSize: 20,
+    margin: "0 0 18px",
+    fontSize: 19,
   },
   label: {
     display: "block",
@@ -587,4 +618,99 @@ const styles = {
     fontWeight: 700,
     cursor: "pointer",
   },
+
+
+dialog: {
+  background: "#ffffff",
+  color: "#123b30",
+  padding: "30px 24px",
+  borderRadius: 16,
+  boxShadow: "0 12px 35px rgba(0, 0, 0, 0.2)",
+  textAlign: "center",
+  maxWidth: 400,
+  width: "100%",
+},
+dialogHeading: {
+  color: "#167852",
+  margin: "14px 0 10px",
+  fontSize: 23,
+},
+dialogText: {
+  fontSize: 14,
+  lineHeight: 1.6,
+  color: "#61776b",
+  margin: "12px 0",
+},
+bookingId: {
+  display: "block",
+  padding: 13,
+  margin: "16px 0",
+  borderRadius: 9,
+  background: "#e8f6ed",
+  color: "#167047",
+  fontWeight: 700,
+  fontSize: 14,
+  overflowWrap: "anywhere",
+},
+
+
+dialogOverlay: {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  backgroundColor: "rgba(0, 0, 0, 0.6)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 10000,
+},
+
+dialogBox: {
+  backgroundColor: "#ffffff",
+  padding: "30px",
+  borderRadius: "16px",
+  width: "90%",
+  maxWidth: "420px",
+  textAlign: "center",
+  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.25)",
+  animation: "popup 0.3s ease-out",
+},
+
+dialogTitle: {
+  color: "#167852",
+  fontSize: "24px",
+  margin: "12px 0",
+},
+
+dialogMessage: {
+  color: "#61776b",
+  fontSize: "14px",
+  lineHeight: 1.6,
+  margin: "12px 0",
+},
+
+dialogBookingId: {
+  backgroundColor: "#e8f6ed",
+  color: "#167047",
+  padding: "12px",
+  borderRadius: "8px",
+  fontWeight: "bold",
+  overflowWrap: "anywhere",
+  margin: "16px 0",
+},
+
+dialogButton: {
+  width: "100%",
+  padding: "12px",
+  backgroundColor: "#167852",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "8px",
+  fontWeight: "bold",
+  cursor: "pointer",
+  marginTop: "12px",
+},
+
 };

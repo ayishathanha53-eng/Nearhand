@@ -15,7 +15,6 @@ import {
 import "./Profile.css";
 
 const API_URL = "http://localhost:5000/api/customer";
-
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
@@ -420,8 +419,7 @@ export default function Profile() {
         </div>
 
         <p className="profile-security-note">
-          Password changes can be added here after connecting a secure
-          password-update endpoint.
+        
         </p>
       </section>
     </div>

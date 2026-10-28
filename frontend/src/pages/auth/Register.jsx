@@ -132,7 +132,7 @@ const handleCreateAccount = async (e) => {
   const goToDashboard = () => {
     setAccountCreated(false);
 
-    navigate("/customer/dashboard");
+    navigate("/login");
   };
 
   return (
@@ -430,7 +430,7 @@ const handleCreateAccount = async (e) => {
               className="success-dashboard-btn"
               onClick={goToDashboard}
             >
-              Go to dashboard
+              Go to Login
             </button>
 
             <p className="success-login-text">

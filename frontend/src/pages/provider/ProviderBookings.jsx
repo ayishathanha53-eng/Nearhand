@@ -47,6 +47,7 @@ export default function ProviderBookings() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [updatingId, setUpdatingId] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const getToken = () =>
     localStorage.getItem("token") ||
@@ -87,62 +88,67 @@ export default function ProviderBookings() {
     loadBookings();
   }, [loadBookings]);
 
-  const updateStatus = async (bookingId, status) => {
-    const labels = {
-      Confirmed: "accept this booking",
-      Cancelled: "reject/cancel this booking",
-      "In Progress": "start this service",
-      Completed: "mark this service as completed",
-    };
-
-    if (!window.confirm(`Are you sure you want to ${labels[status]}?`)) {
-      return;
-    }
-
-    setUpdatingId(bookingId);
-    setError("");
-    setNotice("");
-
-    try {
-      const token = getToken();
-
-      if (!token) {
-        throw new Error("Your session has expired. Please log in again.");
-      }
-
-      const response = await fetch(
-        `${API_URL}/api/providers/bookings/${bookingId}/status`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Unable to update booking.");
-      }
-
-      setBookings((current) =>
-        current.map((booking) =>
-          booking._id === bookingId ? data.booking : booking
-        )
-      );
-
-      setNotice(data.message || "Booking updated successfully.");
-    } catch (err) {
-      setError(err.message || "Unable to update booking.");
-    } finally {
-      setUpdatingId("");
-    }
+  
+ 
+const updateStatus = (bookingId, status) => {
+  const labels = {
+    Confirmed: "accept this booking",
+    Cancelled: "reject/cancel this booking",
+    "In Progress": "start this service",
+    Completed: "mark this service as completed",
   };
 
-  
+  setConfirmAction({
+    bookingId,
+    status,
+    message: labels[status],
+  });
+};
+
+const performStatusUpdate = async (bookingId, status) => {
+  setUpdatingId(bookingId);
+  setError("");
+  setNotice("");
+
+  try {
+    const token = getToken();
+
+    if (!token) {
+      throw new Error("Please log in again.");
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/providers/bookings/${bookingId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to update booking.");
+    }
+
+    setBookings((current) =>
+      current.map((booking) =>
+        booking._id === bookingId ? data.booking : booking
+      )
+    );
+
+    setNotice(data.message || "Booking updated successfully.");
+  } catch (err) {
+    setError(err.message || "Unable to update booking.");
+  } finally {
+    setUpdatingId("");
+  }
+};
+
     const renderActions = (booking) => {
     const busy = updatingId === booking._id;
 
@@ -212,7 +218,7 @@ export default function ProviderBookings() {
             type="button"
             className={`provider-booking-button ${action.className}`}
             disabled={busy}
-            onClick={() => updateStatus(booking._id, action.status)}
+           onClick={() => updateStatus(booking._id, action.status)}
             >
             {busy ? (
                 <LoaderCircle size={17} />
@@ -381,6 +387,106 @@ export default function ProviderBookings() {
           .provider-booking-card-top { flex-direction: column; }
           .provider-booking-button { flex: 1; }
         }
+
+
+        .confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-dialog {
+  width: 100%;
+  max-width: 400px;
+  padding: 28px;
+  text-align: center;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: confirmPop 0.2s ease-out;
+}
+
+.confirm-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 16px;
+  color: #2563eb;
+  background: #eff6ff;
+  border-radius: 50%;
+}
+
+.confirm-dialog h2 {
+  margin: 0 0 10px;
+  color: #172b21;
+  font-size: 22px;
+}
+
+.confirm-dialog p {
+  margin: 0 0 24px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.confirm-actions button {
+  flex: 1;
+  padding: 12px 10px;
+  border-radius: 9px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-cancel {
+  color: #475569;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+}
+
+.confirm-yes {
+  color: #fff;
+  background: #19834a;
+  border: 1px solid #19834a;
+}
+
+.confirm-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes confirmPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (max-width: 420px) {
+  .confirm-dialog {
+    padding: 22px 18px;
+  }
+
+  .confirm-actions {
+    flex-direction: column-reverse;
+  }
+}
       `}</style>
 
       <header className="provider-bookings-header">
@@ -511,6 +617,52 @@ export default function ProviderBookings() {
           ))}
         </section>
       )}
+
+
+      {confirmAction && (
+  <div className="confirm-overlay">
+    <div
+      className="confirm-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title"
+    >
+      <div className="confirm-icon">
+        <RefreshCw size={25} />
+      </div>
+
+      <h2 id="confirm-title">Are you sure?</h2>
+
+      <p>
+        Are you sure you want to {confirmAction.message}?
+      </p>
+
+      <div className="confirm-actions">
+        <button
+          type="button"
+          className="confirm-cancel"
+          onClick={() => setConfirmAction(null)}
+        >
+          No, Go Back
+        </button>
+
+        <button
+          type="button"
+          className="confirm-yes"
+          disabled={updatingId === confirmAction.bookingId}
+          onClick={async () => {
+            const action = confirmAction;
+            setConfirmAction(null);
+            await performStatusUpdate(action.bookingId, action.status);
+          }}
+        >
+          Yes, Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </main>
   );
 }
