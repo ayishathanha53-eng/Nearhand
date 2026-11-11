@@ -26,7 +26,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "./ProviderDashboard.css";
+import "./providerDashboard.css";
 
 const API_URL = "http://localhost:5000";
 
