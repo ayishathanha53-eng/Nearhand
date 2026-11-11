@@ -16,7 +16,7 @@ import {
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
-import "./ProviderDetails.css";
+import "./providerDetails.css";
 
 const API_URL = "http://localhost:5000/api/admin";
 const SERVER_URL = "http://localhost:5000";

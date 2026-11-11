@@ -10,7 +10,7 @@ import {
   ArrowRight,
   Shield,
 } from "lucide-react";
-import "./AdminLogin.css";
+import "./adminLogin.css";
 
 const API_URL = "http://localhost:5000/api/admin-auth";
 
