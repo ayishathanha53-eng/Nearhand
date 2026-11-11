@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const Provider = require("../models/Provider");
+const Provider = require("../models/provider");
 const Complaint = require("../models/complaint");
 const adminAuth = require("../middleware/adminAuth");
 const sendInterviewEmail = require("../utils/sendInterviewEmail");
@@ -42,7 +42,7 @@ router.get("/summary", async (req, res) => {
   }
 });
 
-// List provider applications
+
 
  // List provider applications
 

@@ -329,7 +329,7 @@ setShowBookingDialog(true);
         </div>
 
         <label style={styles.label} htmlFor="address">
-          Service address *
+          Service address & Contact Number*
         </label>
         <textarea
           id="address"

@@ -1,9 +1,43 @@
+
+require("dotenv").config();
+
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
 const path = require("path");
+
 const connectDB = require("./config/db");
+
+const app = express();
+
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+}));
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Static uploaded files
+app.use("/uploads", express.static(
+  path.join(__dirname, "uploads")
+));
+
+// Routes
+const providerRoutes = require("./routes/providerRoutes");
+const authRoutes = require("./routes/authRoutes");
+const customerRoutes = require("./routes/customerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const complaintRoutes = require("./routes/complaintroutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
@@ -11,30 +45,6 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const favouriteRoutes = require("./routes/favouriteRoutes");
-
-
-
-dotenv.config();
-
-
-const app = express();
-
-
-
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Serve uploaded files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// Routes
-// Routes
-const providerRoutes = require("./routes/providerRoutes");
-const authRoutes = require("./routes/authRoutes");
-const customerRoutes = require("./routes/customerRoutes");
 
 app.use("/api/providers", providerRoutes);
 app.use("/api/auth", authRoutes);
@@ -46,44 +56,32 @@ app.use("/api/favourites", favouriteRoutes);
 app.use("/api/profile", require("./routes/profilePhoto"));
 app.use("/api/password-reset", require("./routes/passwordReset"));
 app.use("/api/admin", adminRoutes);
+app.use("/api/complaints", complaintRoutes);
+app.use("/api/admin-auth", adminAuthRoutes);
 
-// Basic test route
+// Test routes
 app.get("/", (req, res) => {
   res.json({
     message: "NearHand Backend is running"
   });
 });
 
-// MongoDB connection
+app.get("/user", (req, res) => {
+  res.send("Hello world");
+});
 
-const PORT = process.env.PORT || 3000;
+// Start server
+const PORT = process.env.PORT || 5000;
 
 connectDB()
   .then(() => {
-    console.log("Database is connected successfully!!");
+    console.log("Database connected successfully!");
 
-    app.listen(PORT, () => {
-      console.log(`Server is listening on port ${PORT}...`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
     console.error("Database connection failed:", err.message);
     process.exit(1);
   });
-
-
-app.use(express.json());
-
-app.get("/user", async (req, res) => {
-    try{
-        res.send("Hello world")
-    }catch(err){
-        res.status(400).send("error");
-    }
-})
-
-app.use("/api/admin", adminRoutes);
-
-app.use("/api/complaints", complaintRoutes);
-
-app.use("/api/admin-auth", adminAuthRoutes);
