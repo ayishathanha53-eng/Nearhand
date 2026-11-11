@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 
 const User = require("../models/User");
-const Provider = require("../models/Provider");
+const Provider = require("../models/provider");
 
 // Required only for production email delivery.
 

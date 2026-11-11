@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const router = express.Router();
 
 const Favourite = require("../models/Favourite");
-const Provider = require("../models/Provider");
+const Provider = require("../models/provider");
 const authMiddleware = require("../middleware/authMiddleware");
 
 // List the logged-in customer's favourite providers.

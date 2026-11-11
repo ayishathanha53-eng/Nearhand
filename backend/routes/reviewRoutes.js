@@ -5,7 +5,7 @@ const router = express.Router();
 
 const Review = require("../models/Review");
 const Booking = require("../models/Booking");
-const Provider = require("../models/Provider");
+const Provider = require("../models/provider");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminAuth = require("../middleware/adminAuth");
 // Submit a review for a completed booking.

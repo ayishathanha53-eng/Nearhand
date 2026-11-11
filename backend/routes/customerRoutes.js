@@ -6,9 +6,9 @@ const Notification = require("../models/Notification");
 
 
 const Booking = require("../models/Booking");
-const Provider = require("../models/Provider");
+const Provider = require("../models/provider");
 const authMiddleware = require("../middleware/authMiddleware");
-const User = require("../models/user");
+const User = require("../models/User");
 const Favourite = require("../models/Favourite");
 
 // Shared eligibility rules for customer visibility and booking creation.

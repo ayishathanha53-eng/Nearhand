@@ -3,7 +3,7 @@ const express = require("express");
 const multer = require("multer");
 const cloudinary = require("../config/cloudinary");
 const User = require("../models/User");
-const Provider = require("../models/Provider");
+const Provider = require("../models/provider");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
