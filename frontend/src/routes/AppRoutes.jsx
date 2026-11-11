@@ -43,7 +43,7 @@ import ProviderBookingDetails from "../pages/provider/BookingDetails";
 // Admin pages
 import AdminLogin from "../pages/admin/adminLogin";
 import AdminDashboard from "../pages/admin/Dashboard";
-import ProviderDetails from "../pages/admin/ProviderDetails";
+import ProviderDetails from "../pages/admin/providerDetails";
 import AdminProtectedRoute from "../pages/admin/Protected";
 
 import AdminReviews from "../pages/admin/Reviews";
