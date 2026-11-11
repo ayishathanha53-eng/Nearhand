@@ -4,7 +4,7 @@ import { Bell, CheckCheck, Clock, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 export default function NotificationBell({ role = "customer" }) {
   const [notifications, setNotifications] = useState([]);

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import "./Profile.css";
 
-const API_URL = "http://localhost:5000/api/customer";
+const API_URL = "https://nearhand-r6fb.onrender.com/api/customer";
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({

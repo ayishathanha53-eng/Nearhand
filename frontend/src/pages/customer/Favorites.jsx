@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, MapPin, Star, Trash2 } from "lucide-react";
 import "./Favorites.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 export default function Favorites() {
   const navigate = useNavigate();

@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 const STATUSES = [
   "All",

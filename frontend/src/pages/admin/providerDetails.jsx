@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import "./providerDetails.css";
 
-const API_URL = "http://localhost:5000/api/admin";
-const SERVER_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com/api/admin";
+const SERVER_URL = "https://nearhand-r6fb.onrender.com";
 
 export default function ProviderDetails() {
   const navigate = useNavigate();

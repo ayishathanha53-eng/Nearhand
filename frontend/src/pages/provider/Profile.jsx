@@ -16,9 +16,9 @@ import {
 } from "lucide-react";
 import "./Profile.css";
 
-const API_URL = "http://localhost:5000/api/providers/profile";
-const PHOTO_API_URL = "http://localhost:5000/api/providers/profile/photo";
-const SERVER_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com/api/providers/profile";
+const PHOTO_API_URL = "https://nearhand-r6fb.onrender.com/api/providers/profile/photo";
+const SERVER_URL = "https://nearhand-r6fb.onrender.com";
 
 function formatValue(value) {
   if (value === null || value === undefined || value === "") {

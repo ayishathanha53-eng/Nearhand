@@ -13,7 +13,7 @@ import {
   LoaderCircle,
 } from "lucide-react";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 const STATUS_STYLES = {
   Pending: { background: "#fff7ed", color: "#c2410c" },

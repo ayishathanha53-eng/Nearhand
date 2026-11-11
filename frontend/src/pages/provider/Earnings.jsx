@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import "./Earnings.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 const formatMoney = (amount) =>
   new Intl.NumberFormat("en-IN", {

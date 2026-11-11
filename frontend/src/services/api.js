@@ -1,5 +1,5 @@
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 export async function apiRequest(endpoint, options = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, options);

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import "./PasswordReset.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();

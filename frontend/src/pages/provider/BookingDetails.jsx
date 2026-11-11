@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, MapPin, RefreshCw } from "lucide-react";
 import "./BookingDetails.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 export default function ProviderBookingDetails() {
   const { bookingId } = useParams();

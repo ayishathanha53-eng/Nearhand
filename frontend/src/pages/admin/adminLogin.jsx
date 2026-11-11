@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import "./adminLogin.css";
 
-const API_URL = "http://localhost:5000/api/admin-auth";
+const API_URL = "https://nearhand-r6fb.onrender.com/api/admin-auth";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");

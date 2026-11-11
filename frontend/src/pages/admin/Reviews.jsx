@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Star, RefreshCw, LoaderCircle, MessageSquareText } from "lucide-react";
 import "./reviews.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nearhand-r6fb.onrender.com";
 
 export default function AdminReviews() {
   const [reviews, setReviews] = useState([]);
