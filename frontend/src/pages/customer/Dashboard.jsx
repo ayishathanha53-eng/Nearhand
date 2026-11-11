@@ -23,7 +23,7 @@ import {
   BriefcaseBusiness,
 } from "lucide-react";
 
-import "./CustomerDashboard.css";
+import "./customerDashboard.css";
 
 const API_URL = "http://localhost:5000";
 
