@@ -29,12 +29,12 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static uploaded files
+// Serve uploaded files
 app.use("/uploads", express.static(
   path.join(__dirname, "uploads")
 ));
 
-// Routes
+// Import routes
 const providerRoutes = require("./routes/providerRoutes");
 const authRoutes = require("./routes/authRoutes");
 const customerRoutes = require("./routes/customerRoutes");
@@ -46,6 +46,7 @@ const contactRoutes = require("./routes/contactRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const favouriteRoutes = require("./routes/favouriteRoutes");
 
+// Register routes
 app.use("/api/providers", providerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/customer", customerRoutes);
